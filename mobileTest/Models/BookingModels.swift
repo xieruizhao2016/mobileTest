@@ -79,7 +79,7 @@ struct Location: Codable {
 }
 
 // MARK: - 数据状态枚举
-enum DataStatus {
+enum DataStatus: Equatable {
     case loading      // 加载中
     case loaded       // 已加载
     case expired      // 已过期
