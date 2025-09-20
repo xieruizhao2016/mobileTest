@@ -1,0 +1,141 @@
+/* 
+  Localizable.strings (简体中文)
+  mobileTest
+  
+  Created by ruizhao_xie on 12/19/24.
+*/
+
+// MARK: - 通用消息
+"common.loading" = "加载中...";
+"common.success" = "成功";
+"common.error" = "错误";
+"common.warning" = "警告";
+"common.info" = "信息";
+"common.retry" = "重试";
+"common.cancel" = "取消";
+"common.confirm" = "确认";
+"common.save" = "保存";
+"common.delete" = "删除";
+"common.edit" = "编辑";
+"common.add" = "添加";
+"common.search" = "搜索";
+"common.filter" = "筛选";
+"common.sort" = "排序";
+"common.refresh" = "刷新";
+"common.close" = "关闭";
+"common.back" = "返回";
+"common.next" = "下一步";
+"common.previous" = "上一步";
+"common.done" = "完成";
+"common.ok" = "确定";
+"common.yes" = "是";
+"common.no" = "否";
+
+// MARK: - 错误消息
+"error.generic" = "发生错误";
+"error.network" = "网络错误";
+"error.timeout" = "请求超时";
+"error.unauthorized" = "未授权访问";
+"error.forbidden" = "访问被禁止";
+"error.not_found" = "资源未找到";
+"error.server_error" = "服务器错误";
+"error.validation" = "验证错误";
+"error.file_not_found" = "文件未找到: %@";
+"error.file_access_denied" = "文件访问被拒绝: %@";
+"error.file_corrupted" = "文件已损坏: %@";
+"error.file_too_large" = "文件过大: %@";
+"error.disk_space_insufficient" = "磁盘空间不足: %@";
+"error.data_corrupted" = "数据已损坏";
+"error.invalid_json" = "无效的JSON格式";
+"error.decoding_failed" = "解码失败";
+"error.encoding_failed" = "编码失败";
+"error.cache_error" = "缓存错误";
+"error.configuration_error" = "配置错误";
+"error.permission_denied" = "权限被拒绝";
+"error.resource_unavailable" = "资源不可用";
+"error.compatibility_error" = "兼容性错误";
+"error.internal_error" = "内部错误";
+"error.unexpected_error" = "意外错误";
+"error.system_error" = "系统错误";
+"error.network_timeout" = "网络超时: %@";
+"error.network_unavailable" = "网络不可用: %@";
+"error.dns_error" = "DNS错误: %@";
+"error.invalid_url" = "无效的URL: %@";
+"error.ssl_error" = "SSL/TLS错误: %@";
+"error.authentication_failed" = "认证失败: %@";
+"error.authorization_failed" = "授权失败: %@";
+"error.server_error_with_code" = "服务器错误 (%d): %@";
+"error.data_expired" = "数据已过期";
+"error.missing_configuration" = "缺少配置: %@";
+"error.invalid_configuration" = "无效配置: %@";
+"error.file_operation_timeout" = "文件操作超时: %@";
+"error.file_locked" = "文件被锁定: %@";
+"error.invalid_file_path" = "无效的文件路径: %@";
+"error.encoding_error" = "编码错误: %@";
+
+// MARK: - 业务消息
+"booking.data_loaded" = "预订数据加载成功";
+"booking.data_expired" = "预订数据已过期";
+"booking.data_invalid" = "无效的预订数据";
+"booking.segment_not_found" = "预订航段未找到";
+"booking.ship_reference_invalid" = "无效的船舶参考号: %@";
+"booking.duration_invalid" = "无效的持续时间: %@";
+"booking.price_invalid" = "无效的价格: %@";
+"booking.seats_unavailable" = "座位不可用: %@";
+"booking.time_conflict" = "时间冲突";
+"booking.route_invalid" = "无效的路线配置";
+
+// MARK: - 性能监控消息
+"performance.metric_recorded" = "性能指标已记录";
+"performance.statistics_generated" = "性能统计已生成";
+"performance.data_exported" = "性能数据已导出";
+"performance.data_cleared" = "性能数据已清除";
+"performance.memory_usage" = "内存使用";
+"performance.execution_time" = "执行时间";
+"performance.network_latency" = "网络延迟";
+"performance.cache_hit_rate" = "缓存命中率";
+"performance.error_rate" = "错误率";
+"performance.throughput" = "吞吐量";
+"performance.response_size" = "响应大小";
+"performance.retry_count" = "重试次数";
+"performance.validation_time" = "验证时间";
+
+// MARK: - 数据验证消息
+"validation.required_field_missing" = "缺少必填字段: %@";
+"validation.invalid_format" = "无效格式: %@";
+"validation.invalid_value" = "无效值: %@";
+"validation.business_rule_violation" = "业务规则违反: %@";
+"validation.data_inconsistency" = "数据不一致: %@";
+"validation.constraint_violation" = "约束违反: %@";
+"validation.data_corruption" = "数据损坏: %@";
+"validation.reference_integrity" = "引用完整性错误: %@";
+"validation.duplicate_data" = "重复数据: %@";
+"validation.invalid_date" = "无效日期: %@";
+"validation.date_out_of_range" = "日期超出范围: %@";
+"validation.expired_data" = "数据已过期: %@";
+"validation.invalid_url" = "无效URL: %@";
+"validation.network_data_error" = "网络数据错误: %@";
+
+// MARK: - 重试机制消息
+"retry.attempt_failed" = "重试尝试 %d 失败";
+"retry.max_attempts_reached" = "已达到最大重试次数";
+"retry.exponential_backoff" = "使用指数退避策略";
+"retry.linear_backoff" = "使用线性退避策略";
+"retry.fixed_delay" = "使用固定延迟策略";
+"retry.adaptive_strategy" = "使用自适应重试策略";
+"retry.no_retry" = "无重试策略";
+"retry.delay_calculated" = "重试延迟计算: %.2f 秒";
+"retry.strategy_changed" = "重试策略已更改为: %@";
+"retry.success_after_retry" = "重试 %d 次后成功";
+
+// MARK: - 缓存消息
+"cache.hit" = "缓存命中";
+"cache.miss" = "缓存未命中";
+"cache.expired" = "缓存已过期";
+"cache.invalidated" = "缓存已失效";
+"cache.cleared" = "缓存已清除";
+"cache.warmed_up" = "缓存已预热";
+"cache.statistics_updated" = "缓存统计已更新";
+"cache.memory_limit_reached" = "缓存内存限制已到达";
+"cache.item_evicted" = "缓存项已驱逐";
+"cache.size_exceeded" = "缓存大小超出限制";

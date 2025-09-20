@@ -1,0 +1,141 @@
+/* 
+  Localizable.strings (繁體中文)
+  mobileTest
+  
+  Created by ruizhao_xie on 12/19/24.
+*/
+
+// MARK: - 通用訊息
+"common.loading" = "載入中...";
+"common.success" = "成功";
+"common.error" = "錯誤";
+"common.warning" = "警告";
+"common.info" = "資訊";
+"common.retry" = "重試";
+"common.cancel" = "取消";
+"common.confirm" = "確認";
+"common.save" = "儲存";
+"common.delete" = "刪除";
+"common.edit" = "編輯";
+"common.add" = "新增";
+"common.search" = "搜尋";
+"common.filter" = "篩選";
+"common.sort" = "排序";
+"common.refresh" = "重新整理";
+"common.close" = "關閉";
+"common.back" = "返回";
+"common.next" = "下一步";
+"common.previous" = "上一步";
+"common.done" = "完成";
+"common.ok" = "確定";
+"common.yes" = "是";
+"common.no" = "否";
+
+// MARK: - 錯誤訊息
+"error.generic" = "發生錯誤";
+"error.network" = "網路錯誤";
+"error.timeout" = "請求逾時";
+"error.unauthorized" = "未授權存取";
+"error.forbidden" = "存取被禁止";
+"error.not_found" = "資源未找到";
+"error.server_error" = "伺服器錯誤";
+"error.validation" = "驗證錯誤";
+"error.file_not_found" = "檔案未找到: %@";
+"error.file_access_denied" = "檔案存取被拒絕: %@";
+"error.file_corrupted" = "檔案已損壞: %@";
+"error.file_too_large" = "檔案過大: %@";
+"error.disk_space_insufficient" = "磁碟空間不足: %@";
+"error.data_corrupted" = "資料已損壞";
+"error.invalid_json" = "無效的JSON格式";
+"error.decoding_failed" = "解碼失敗";
+"error.encoding_failed" = "編碼失敗";
+"error.cache_error" = "快取錯誤";
+"error.configuration_error" = "設定錯誤";
+"error.permission_denied" = "權限被拒絕";
+"error.resource_unavailable" = "資源不可用";
+"error.compatibility_error" = "相容性錯誤";
+"error.internal_error" = "內部錯誤";
+"error.unexpected_error" = "意外錯誤";
+"error.system_error" = "系統錯誤";
+"error.network_timeout" = "網路逾時: %@";
+"error.network_unavailable" = "網路不可用: %@";
+"error.dns_error" = "DNS錯誤: %@";
+"error.invalid_url" = "無效的URL: %@";
+"error.ssl_error" = "SSL/TLS錯誤: %@";
+"error.authentication_failed" = "認證失敗: %@";
+"error.authorization_failed" = "授權失敗: %@";
+"error.server_error_with_code" = "伺服器錯誤 (%d): %@";
+"error.data_expired" = "資料已過期";
+"error.missing_configuration" = "缺少設定: %@";
+"error.invalid_configuration" = "無效設定: %@";
+"error.file_operation_timeout" = "檔案操作逾時: %@";
+"error.file_locked" = "檔案被鎖定: %@";
+"error.invalid_file_path" = "無效的檔案路徑: %@";
+"error.encoding_error" = "編碼錯誤: %@";
+
+// MARK: - 業務訊息
+"booking.data_loaded" = "預訂資料載入成功";
+"booking.data_expired" = "預訂資料已過期";
+"booking.data_invalid" = "無效的預訂資料";
+"booking.segment_not_found" = "預訂航段未找到";
+"booking.ship_reference_invalid" = "無效的船舶參考號: %@";
+"booking.duration_invalid" = "無效的持續時間: %@";
+"booking.price_invalid" = "無效的價格: %@";
+"booking.seats_unavailable" = "座位不可用: %@";
+"booking.time_conflict" = "時間衝突";
+"booking.route_invalid" = "無效的路線設定";
+
+// MARK: - 效能監控訊息
+"performance.metric_recorded" = "效能指標已記錄";
+"performance.statistics_generated" = "效能統計已產生";
+"performance.data_exported" = "效能資料已匯出";
+"performance.data_cleared" = "效能資料已清除";
+"performance.memory_usage" = "記憶體使用";
+"performance.execution_time" = "執行時間";
+"performance.network_latency" = "網路延遲";
+"performance.cache_hit_rate" = "快取命中率";
+"performance.error_rate" = "錯誤率";
+"performance.throughput" = "吞吐量";
+"performance.response_size" = "回應大小";
+"performance.retry_count" = "重試次數";
+"performance.validation_time" = "驗證時間";
+
+// MARK: - 資料驗證訊息
+"validation.required_field_missing" = "缺少必填欄位: %@";
+"validation.invalid_format" = "無效格式: %@";
+"validation.invalid_value" = "無效值: %@";
+"validation.business_rule_violation" = "業務規則違反: %@";
+"validation.data_inconsistency" = "資料不一致: %@";
+"validation.constraint_violation" = "約束違反: %@";
+"validation.data_corruption" = "資料損壞: %@";
+"validation.reference_integrity" = "參考完整性錯誤: %@";
+"validation.duplicate_data" = "重複資料: %@";
+"validation.invalid_date" = "無效日期: %@";
+"validation.date_out_of_range" = "日期超出範圍: %@";
+"validation.expired_data" = "資料已過期: %@";
+"validation.invalid_url" = "無效URL: %@";
+"validation.network_data_error" = "網路資料錯誤: %@";
+
+// MARK: - 重試機制訊息
+"retry.attempt_failed" = "重試嘗試 %d 失敗";
+"retry.max_attempts_reached" = "已達到最大重試次數";
+"retry.exponential_backoff" = "使用指數退避策略";
+"retry.linear_backoff" = "使用線性退避策略";
+"retry.fixed_delay" = "使用固定延遲策略";
+"retry.adaptive_strategy" = "使用自適應重試策略";
+"retry.no_retry" = "無重試策略";
+"retry.delay_calculated" = "重試延遲計算: %.2f 秒";
+"retry.strategy_changed" = "重試策略已更改為: %@";
+"retry.success_after_retry" = "重試 %d 次後成功";
+
+// MARK: - 快取訊息
+"cache.hit" = "快取命中";
+"cache.miss" = "快取未命中";
+"cache.expired" = "快取已過期";
+"cache.invalidated" = "快取已失效";
+"cache.cleared" = "快取已清除";
+"cache.warmed_up" = "快取已預熱";
+"cache.statistics_updated" = "快取統計已更新";
+"cache.memory_limit_reached" = "快取記憶體限制已到達";
+"cache.item_evicted" = "快取項目已驅逐";
+"cache.size_exceeded" = "快取大小超出限制";

@@ -137,7 +137,7 @@ class BookingDataManager: ObservableObject, BookingDataManagerProtocol {
         if newData.isExpired {
             print("⚠️ [BookingDataManager] 获取的数据已过期")
             dataStatus = .expired
-            throw BookingDataError.dataExpired
+            throw BookingDataError.dataExpired("数据已过期")
         }
         
         // 保存到缓存
@@ -171,7 +171,7 @@ extension BookingDataManager {
     /// - Throws: BookingDataError
     func clearCache() throws {
         print("🗑️ [BookingDataManager] 清除缓存...")
-        try bookingCache.clear()
+        try bookingCache.clearLegacyCache()
         print("✅ [BookingDataManager] 缓存已清除")
     }
     

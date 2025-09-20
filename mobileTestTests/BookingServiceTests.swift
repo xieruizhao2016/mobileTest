@@ -11,13 +11,16 @@ import XCTest
 final class BookingServiceTests: XCTestCase {
     
     private var bookingService: BookingService!
+    private var testConfiguration: BookingServiceConfigurationProtocol!
     
     override func setUpWithError() throws {
-        bookingService = BookingService()
+        testConfiguration = BookingServiceConfigurationFactory.createTest()
+        bookingService = BookingService(configuration: testConfiguration)
     }
     
     override func tearDownWithError() throws {
         bookingService = nil
+        testConfiguration = nil
     }
     
     // MARK: - 数据获取测试
@@ -131,5 +134,199 @@ final class BookingServiceTests: XCTestCase {
         // 验证数据一致性
         XCTAssertEqual(results[0].shipReference, results[1].shipReference)
         XCTAssertEqual(results[1].shipReference, results[2].shipReference)
+    }
+    
+    // MARK: - 配置化测试
+    
+    func testDefaultConfiguration() throws {
+        let service = BookingService()
+        XCTAssertNotNil(service)
+    }
+    
+    func testCustomConfiguration() throws {
+        let customConfig = BookingServiceConfigurationFactory.createCustom(
+            fileName: "test_booking",
+            enableVerboseLogging: false,
+            enableCaching: false
+        )
+        let service = BookingService(configuration: customConfig)
+        XCTAssertNotNil(service)
+    }
+    
+    func testProductionConfiguration() throws {
+        let productionConfig = BookingServiceConfigurationFactory.createProduction()
+        let service = BookingService(configuration: productionConfig)
+        XCTAssertNotNil(service)
+    }
+    
+    // MARK: - 缓存测试
+    
+    func testCacheFunctionality() async throws {
+        // 使用启用缓存的配置
+        let cacheConfig = BookingServiceConfigurationFactory.createCustom(
+            fileName: "booking",
+            enableCaching: true,
+            cacheExpirationTime: 60.0
+        )
+        let cacheService = BookingService(configuration: cacheConfig)
+        
+        // 第一次获取数据
+        let data1 = try await cacheService.fetchBookingData()
+        XCTAssertFalse(data1.shipReference.isEmpty)
+        
+        // 第二次获取数据（应该从缓存获取）
+        let data2 = try await cacheService.fetchBookingData()
+        XCTAssertEqual(data1.shipReference, data2.shipReference)
+        
+        // 验证缓存统计
+        let stats = cacheService.getCacheStats()
+        XCTAssertGreaterThan(stats.totalItems, 0)
+    }
+    
+    func testCacheExpiration() async throws {
+        // 使用短缓存过期时间的配置
+        let shortCacheConfig = BookingServiceConfigurationFactory.createCustom(
+            fileName: "booking",
+            enableCaching: true,
+            cacheExpirationTime: 0.1 // 100ms
+        )
+        let cacheService = BookingService(configuration: shortCacheConfig)
+        
+        // 第一次获取数据
+        _ = try await cacheService.fetchBookingData()
+        
+        // 等待缓存过期
+        try await Task.sleep(nanoseconds: 200_000_000) // 200ms
+        
+        // 第二次获取数据（应该重新从文件读取）
+        _ = try await cacheService.fetchBookingData()
+    }
+    
+    func testClearCache() async throws {
+        let cacheConfig = BookingServiceConfigurationFactory.createCustom(
+            fileName: "booking",
+            enableCaching: true
+        )
+        let cacheService = BookingService(configuration: cacheConfig)
+        
+        // 获取数据并缓存
+        _ = try await cacheService.fetchBookingData()
+        
+        // 验证缓存存在
+        let statsBefore = cacheService.getCacheStats()
+        XCTAssertGreaterThan(statsBefore.totalItems, 0)
+        
+        // 清除缓存
+        cacheService.clearCache()
+        
+        // 验证缓存已清除
+        let statsAfter = cacheService.getCacheStats()
+        XCTAssertEqual(statsAfter.totalItems, 0)
+    }
+    
+    // MARK: - 重试机制测试
+    
+    func testRetryMechanism() async throws {
+        let retryConfig = BookingServiceConfigurationFactory.createCustom(
+            fileName: "booking",
+            maxRetryAttempts: 2,
+            retryDelay: 0.1
+        )
+        let retryService = BookingService(configuration: retryConfig)
+        
+        // 测试重试机制（正常情况下应该成功）
+        let data = try await retryService.fetchBookingDataWithRetry()
+        XCTAssertFalse(data.shipReference.isEmpty)
+    }
+    
+    // MARK: - 高级缓存功能测试
+    
+    func testCacheStatistics() async throws {
+        let cacheConfig = BookingServiceConfigurationFactory.createCustom(
+            fileName: "booking",
+            enableCaching: true
+        )
+        let cacheService = BookingService(configuration: cacheConfig)
+        
+        // 获取初始统计
+        let initialStats = cacheService.getCacheStats()
+        XCTAssertEqual(initialStats.totalItems, 0)
+        XCTAssertEqual(initialStats.hitCount, 0)
+        XCTAssertEqual(initialStats.missCount, 0)
+        
+        // 第一次获取数据（应该缓存未命中）
+        _ = try await cacheService.fetchBookingData()
+        let afterFirstStats = cacheService.getCacheStats()
+        XCTAssertGreaterThan(afterFirstStats.missCount, 0)
+        
+        // 第二次获取数据（应该缓存命中）
+        _ = try await cacheService.fetchBookingData()
+        let afterSecondStats = cacheService.getCacheStats()
+        XCTAssertGreaterThan(afterSecondStats.hitCount, 0)
+        XCTAssertGreaterThan(afterSecondStats.hitRate, 0.0)
+    }
+    
+    func testCacheWarmup() async throws {
+        let cacheConfig = BookingServiceConfigurationFactory.createCustom(
+            fileName: "booking",
+            enableCaching: true
+        )
+        let cacheService = BookingService(configuration: cacheConfig)
+        
+        // 获取数据用于预热
+        let data = try await cacheService.fetchBookingData()
+        
+        // 清除缓存
+        cacheService.clearCache()
+        XCTAssertEqual(cacheService.getCacheStats().totalItems, 0)
+        
+        // 预热缓存
+        cacheService.warmupCache(with: data)
+        XCTAssertGreaterThan(cacheService.getCacheStats().totalItems, 0)
+        
+        // 验证预热的数据可以立即获取
+        let cachedData = try await cacheService.fetchBookingData()
+        XCTAssertEqual(data.shipReference, cachedData.shipReference)
+    }
+    
+    func testCacheRemoval() async throws {
+        let cacheConfig = BookingServiceConfigurationFactory.createCustom(
+            fileName: "booking",
+            enableCaching: true
+        )
+        let cacheService = BookingService(configuration: cacheConfig)
+        
+        // 获取数据并缓存
+        _ = try await cacheService.fetchBookingData()
+        XCTAssertGreaterThan(cacheService.getCacheStats().totalItems, 0)
+        
+        // 移除特定缓存
+        let cacheKey = "booking.json"
+        cacheService.removeCache(key: cacheKey)
+        
+        // 验证缓存已移除
+        let stats = cacheService.getCacheStats()
+        XCTAssertEqual(stats.totalItems, 0)
+    }
+    
+    func testCacheHitRate() async throws {
+        let cacheConfig = BookingServiceConfigurationFactory.createCustom(
+            fileName: "booking",
+            enableCaching: true
+        )
+        let cacheService = BookingService(configuration: cacheConfig)
+        
+        // 多次获取数据以测试命中率
+        for _ in 0..<5 {
+            _ = try await cacheService.fetchBookingData()
+        }
+        
+        let stats = cacheService.getCacheStats()
+        XCTAssertGreaterThan(stats.hitRate, 0.0)
+        XCTAssertLessThanOrEqual(stats.hitRate, 1.0)
+        
+        // 验证命中率计算正确
+        let expectedHitRate = Double(stats.hitCount) / Double(stats.hitCount + stats.missCount)
+        XCTAssertEqual(stats.hitRate, expectedHitRate, accuracy: 0.01)
     }
 }

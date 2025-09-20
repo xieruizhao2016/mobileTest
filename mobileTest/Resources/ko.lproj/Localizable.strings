@@ -1,0 +1,141 @@
+/* 
+  Localizable.strings (한국어)
+  mobileTest
+  
+  Created by ruizhao_xie on 12/19/24.
+*/
+
+// MARK: - 일반 메시지
+"common.loading" = "로딩 중...";
+"common.success" = "성공";
+"common.error" = "오류";
+"common.warning" = "경고";
+"common.info" = "정보";
+"common.retry" = "재시도";
+"common.cancel" = "취소";
+"common.confirm" = "확인";
+"common.save" = "저장";
+"common.delete" = "삭제";
+"common.edit" = "편집";
+"common.add" = "추가";
+"common.search" = "검색";
+"common.filter" = "필터";
+"common.sort" = "정렬";
+"common.refresh" = "새로고침";
+"common.close" = "닫기";
+"common.back" = "뒤로";
+"common.next" = "다음";
+"common.previous" = "이전";
+"common.done" = "완료";
+"common.ok" = "확인";
+"common.yes" = "예";
+"common.no" = "아니오";
+
+// MARK: - 오류 메시지
+"error.generic" = "오류가 발생했습니다";
+"error.network" = "네트워크 오류";
+"error.timeout" = "요청 시간 초과";
+"error.unauthorized" = "인증되지 않음";
+"error.forbidden" = "접근이 금지됨";
+"error.not_found" = "리소스를 찾을 수 없음";
+"error.server_error" = "서버 오류";
+"error.validation" = "검증 오류";
+"error.file_not_found" = "파일을 찾을 수 없음: %@";
+"error.file_access_denied" = "파일 접근이 거부됨: %@";
+"error.file_corrupted" = "파일이 손상됨: %@";
+"error.file_too_large" = "파일이 너무 큼: %@";
+"error.disk_space_insufficient" = "디스크 공간 부족: %@";
+"error.data_corrupted" = "데이터가 손상됨";
+"error.invalid_json" = "잘못된 JSON 형식";
+"error.decoding_failed" = "디코딩 실패";
+"error.encoding_failed" = "인코딩 실패";
+"error.cache_error" = "캐시 오류";
+"error.configuration_error" = "구성 오류";
+"error.permission_denied" = "권한이 거부됨";
+"error.resource_unavailable" = "리소스를 사용할 수 없음";
+"error.compatibility_error" = "호환성 오류";
+"error.internal_error" = "내부 오류";
+"error.unexpected_error" = "예상치 못한 오류";
+"error.system_error" = "시스템 오류";
+"error.network_timeout" = "네트워크 시간 초과: %@";
+"error.network_unavailable" = "네트워크를 사용할 수 없음: %@";
+"error.dns_error" = "DNS 오류: %@";
+"error.invalid_url" = "잘못된 URL: %@";
+"error.ssl_error" = "SSL/TLS 오류: %@";
+"error.authentication_failed" = "인증 실패: %@";
+"error.authorization_failed" = "권한 부여 실패: %@";
+"error.server_error_with_code" = "서버 오류 (%d): %@";
+"error.data_expired" = "데이터가 만료됨";
+"error.missing_configuration" = "구성이 누락됨: %@";
+"error.invalid_configuration" = "잘못된 구성: %@";
+"error.file_operation_timeout" = "파일 작업 시간 초과: %@";
+"error.file_locked" = "파일이 잠김: %@";
+"error.invalid_file_path" = "잘못된 파일 경로: %@";
+"error.encoding_error" = "인코딩 오류: %@";
+
+// MARK: - 비즈니스 메시지
+"booking.data_loaded" = "예약 데이터 로드 성공";
+"booking.data_expired" = "예약 데이터가 만료됨";
+"booking.data_invalid" = "잘못된 예약 데이터";
+"booking.segment_not_found" = "예약 세그먼트를 찾을 수 없음";
+"booking.ship_reference_invalid" = "잘못된 선박 참조 번호: %@";
+"booking.duration_invalid" = "잘못된 기간: %@";
+"booking.price_invalid" = "잘못된 가격: %@";
+"booking.seats_unavailable" = "좌석을 사용할 수 없음: %@";
+"booking.time_conflict" = "시간 충돌";
+"booking.route_invalid" = "잘못된 경로 구성";
+
+// MARK: - 성능 모니터링 메시지
+"performance.metric_recorded" = "성능 지표가 기록됨";
+"performance.statistics_generated" = "성능 통계가 생성됨";
+"performance.data_exported" = "성능 데이터가 내보내짐";
+"performance.data_cleared" = "성능 데이터가 지워짐";
+"performance.memory_usage" = "메모리 사용량";
+"performance.execution_time" = "실행 시간";
+"performance.network_latency" = "네트워크 지연";
+"performance.cache_hit_rate" = "캐시 적중률";
+"performance.error_rate" = "오류율";
+"performance.throughput" = "처리량";
+"performance.response_size" = "응답 크기";
+"performance.retry_count" = "재시도 횟수";
+"performance.validation_time" = "검증 시간";
+
+// MARK: - 데이터 검증 메시지
+"validation.required_field_missing" = "필수 필드가 누락됨: %@";
+"validation.invalid_format" = "잘못된 형식: %@";
+"validation.invalid_value" = "잘못된 값: %@";
+"validation.business_rule_violation" = "비즈니스 규칙 위반: %@";
+"validation.data_inconsistency" = "데이터 불일치: %@";
+"validation.constraint_violation" = "제약 조건 위반: %@";
+"validation.data_corruption" = "데이터 손상: %@";
+"validation.reference_integrity" = "참조 무결성 오류: %@";
+"validation.duplicate_data" = "중복 데이터: %@";
+"validation.invalid_date" = "잘못된 날짜: %@";
+"validation.date_out_of_range" = "날짜가 범위를 벗어남: %@";
+"validation.expired_data" = "데이터가 만료됨: %@";
+"validation.invalid_url" = "잘못된 URL: %@";
+"validation.network_data_error" = "네트워크 데이터 오류: %@";
+
+// MARK: - 재시도 메커니즘 메시지
+"retry.attempt_failed" = "재시도 %d 실패";
+"retry.max_attempts_reached" = "최대 재시도 횟수에 도달";
+"retry.exponential_backoff" = "지수 백오프 전략 사용";
+"retry.linear_backoff" = "선형 백오프 전략 사용";
+"retry.fixed_delay" = "고정 지연 전략 사용";
+"retry.adaptive_strategy" = "적응형 재시도 전략 사용";
+"retry.no_retry" = "재시도 전략 없음";
+"retry.delay_calculated" = "재시도 지연 계산: %.2f 초";
+"retry.strategy_changed" = "재시도 전략이 변경됨: %@";
+"retry.success_after_retry" = "%d 회 재시도 후 성공";
+
+// MARK: - 캐시 메시지
+"cache.hit" = "캐시 적중";
+"cache.miss" = "캐시 미스";
+"cache.expired" = "캐시가 만료됨";
+"cache.invalidated" = "캐시가 무효화됨";
+"cache.cleared" = "캐시가 지워짐";
+"cache.warmed_up" = "캐시가 워밍업됨";
+"cache.statistics_updated" = "캐시 통계가 업데이트됨";
+"cache.memory_limit_reached" = "캐시 메모리 제한에 도달";
+"cache.item_evicted" = "캐시 항목이 제거됨";
+"cache.size_exceeded" = "캐시 크기가 제한을 초과";

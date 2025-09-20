@@ -448,7 +448,7 @@ class MockBookingCache: BookingCacheProtocol {
         return cachedData
     }
     
-    func clear() throws {
+    func clearLegacyCache() throws {
         clearCalled = true
         cachedData = nil
     }

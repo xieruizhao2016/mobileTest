@@ -1,0 +1,141 @@
+/* 
+  Localizable.strings (English)
+  mobileTest
+  
+  Created by ruizhao_xie on 12/19/24.
+*/
+
+// MARK: - Common Messages
+"common.loading" = "Loading...";
+"common.success" = "Success";
+"common.error" = "Error";
+"common.warning" = "Warning";
+"common.info" = "Information";
+"common.retry" = "Retry";
+"common.cancel" = "Cancel";
+"common.confirm" = "Confirm";
+"common.save" = "Save";
+"common.delete" = "Delete";
+"common.edit" = "Edit";
+"common.add" = "Add";
+"common.search" = "Search";
+"common.filter" = "Filter";
+"common.sort" = "Sort";
+"common.refresh" = "Refresh";
+"common.close" = "Close";
+"common.back" = "Back";
+"common.next" = "Next";
+"common.previous" = "Previous";
+"common.done" = "Done";
+"common.ok" = "OK";
+"common.yes" = "Yes";
+"common.no" = "No";
+
+// MARK: - Error Messages
+"error.generic" = "An error occurred";
+"error.network" = "Network error";
+"error.timeout" = "Request timeout";
+"error.unauthorized" = "Unauthorized access";
+"error.forbidden" = "Access forbidden";
+"error.not_found" = "Resource not found";
+"error.server_error" = "Server error";
+"error.validation" = "Validation error";
+"error.file_not_found" = "File not found: %@";
+"error.file_access_denied" = "File access denied: %@";
+"error.file_corrupted" = "File corrupted: %@";
+"error.file_too_large" = "File too large: %@";
+"error.disk_space_insufficient" = "Insufficient disk space: %@";
+"error.data_corrupted" = "Data corrupted";
+"error.invalid_json" = "Invalid JSON format";
+"error.decoding_failed" = "Decoding failed";
+"error.encoding_failed" = "Encoding failed";
+"error.cache_error" = "Cache error";
+"error.configuration_error" = "Configuration error";
+"error.permission_denied" = "Permission denied";
+"error.resource_unavailable" = "Resource unavailable";
+"error.compatibility_error" = "Compatibility error";
+"error.internal_error" = "Internal error";
+"error.unexpected_error" = "Unexpected error";
+"error.system_error" = "System error";
+"error.network_timeout" = "Network timeout: %@";
+"error.network_unavailable" = "Network unavailable: %@";
+"error.dns_error" = "DNS error: %@";
+"error.invalid_url" = "Invalid URL: %@";
+"error.ssl_error" = "SSL/TLS error: %@";
+"error.authentication_failed" = "Authentication failed: %@";
+"error.authorization_failed" = "Authorization failed: %@";
+"error.server_error_with_code" = "Server error (%d): %@";
+"error.data_expired" = "Data expired";
+"error.missing_configuration" = "Missing configuration: %@";
+"error.invalid_configuration" = "Invalid configuration: %@";
+"error.file_operation_timeout" = "File operation timeout: %@";
+"error.file_locked" = "File locked: %@";
+"error.invalid_file_path" = "Invalid file path: %@";
+"error.encoding_error" = "Encoding error: %@";
+
+// MARK: - Business Messages
+"booking.data_loaded" = "Booking data loaded successfully";
+"booking.data_expired" = "Booking data has expired";
+"booking.data_invalid" = "Invalid booking data";
+"booking.segment_not_found" = "Booking segment not found";
+"booking.ship_reference_invalid" = "Invalid ship reference: %@";
+"booking.duration_invalid" = "Invalid duration: %@";
+"booking.price_invalid" = "Invalid price: %@";
+"booking.seats_unavailable" = "Seats unavailable: %@";
+"booking.time_conflict" = "Time conflict detected";
+"booking.route_invalid" = "Invalid route configuration";
+
+// MARK: - Performance Monitoring Messages
+"performance.metric_recorded" = "Performance metric recorded";
+"performance.statistics_generated" = "Performance statistics generated";
+"performance.data_exported" = "Performance data exported";
+"performance.data_cleared" = "Performance data cleared";
+"performance.memory_usage" = "Memory Usage";
+"performance.execution_time" = "Execution Time";
+"performance.network_latency" = "Network Latency";
+"performance.cache_hit_rate" = "Cache Hit Rate";
+"performance.error_rate" = "Error Rate";
+"performance.throughput" = "Throughput";
+"performance.response_size" = "Response Size";
+"performance.retry_count" = "Retry Count";
+"performance.validation_time" = "Validation Time";
+
+// MARK: - Data Validation Messages
+"validation.required_field_missing" = "Required field missing: %@";
+"validation.invalid_format" = "Invalid format: %@";
+"validation.invalid_value" = "Invalid value: %@";
+"validation.business_rule_violation" = "Business rule violation: %@";
+"validation.data_inconsistency" = "Data inconsistency: %@";
+"validation.constraint_violation" = "Constraint violation: %@";
+"validation.data_corruption" = "Data corruption: %@";
+"validation.reference_integrity" = "Reference integrity error: %@";
+"validation.duplicate_data" = "Duplicate data: %@";
+"validation.invalid_date" = "Invalid date: %@";
+"validation.date_out_of_range" = "Date out of range: %@";
+"validation.expired_data" = "Data expired: %@";
+"validation.invalid_url" = "Invalid URL: %@";
+"validation.network_data_error" = "Network data error: %@";
+
+// MARK: - Retry Mechanism Messages
+"retry.attempt_failed" = "Retry attempt %d failed";
+"retry.max_attempts_reached" = "Maximum retry attempts reached";
+"retry.exponential_backoff" = "Using exponential backoff strategy";
+"retry.linear_backoff" = "Using linear backoff strategy";
+"retry.fixed_delay" = "Using fixed delay strategy";
+"retry.adaptive_strategy" = "Using adaptive retry strategy";
+"retry.no_retry" = "No retry strategy";
+"retry.delay_calculated" = "Retry delay calculated: %.2f seconds";
+"retry.strategy_changed" = "Retry strategy changed to: %@";
+"retry.success_after_retry" = "Success after %d retry attempts";
+
+// MARK: - Cache Messages
+"cache.hit" = "Cache hit";
+"cache.miss" = "Cache miss";
+"cache.expired" = "Cache expired";
+"cache.invalidated" = "Cache invalidated";
+"cache.cleared" = "Cache cleared";
+"cache.warmed_up" = "Cache warmed up";
+"cache.statistics_updated" = "Cache statistics updated";
+"cache.memory_limit_reached" = "Cache memory limit reached";
+"cache.item_evicted" = "Cache item evicted";
+"cache.size_exceeded" = "Cache size exceeded";

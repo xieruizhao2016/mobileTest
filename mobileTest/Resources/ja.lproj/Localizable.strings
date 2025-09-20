@@ -1,0 +1,141 @@
+/* 
+  Localizable.strings (日本語)
+  mobileTest
+  
+  Created by ruizhao_xie on 12/19/24.
+*/
+
+// MARK: - 一般的なメッセージ
+"common.loading" = "読み込み中...";
+"common.success" = "成功";
+"common.error" = "エラー";
+"common.warning" = "警告";
+"common.info" = "情報";
+"common.retry" = "再試行";
+"common.cancel" = "キャンセル";
+"common.confirm" = "確認";
+"common.save" = "保存";
+"common.delete" = "削除";
+"common.edit" = "編集";
+"common.add" = "追加";
+"common.search" = "検索";
+"common.filter" = "フィルター";
+"common.sort" = "並び替え";
+"common.refresh" = "更新";
+"common.close" = "閉じる";
+"common.back" = "戻る";
+"common.next" = "次へ";
+"common.previous" = "前へ";
+"common.done" = "完了";
+"common.ok" = "OK";
+"common.yes" = "はい";
+"common.no" = "いいえ";
+
+// MARK: - エラーメッセージ
+"error.generic" = "エラーが発生しました";
+"error.network" = "ネットワークエラー";
+"error.timeout" = "リクエストタイムアウト";
+"error.unauthorized" = "認証されていません";
+"error.forbidden" = "アクセスが禁止されています";
+"error.not_found" = "リソースが見つかりません";
+"error.server_error" = "サーバーエラー";
+"error.validation" = "検証エラー";
+"error.file_not_found" = "ファイルが見つかりません: %@";
+"error.file_access_denied" = "ファイルアクセスが拒否されました: %@";
+"error.file_corrupted" = "ファイルが破損しています: %@";
+"error.file_too_large" = "ファイルが大きすぎます: %@";
+"error.disk_space_insufficient" = "ディスク容量が不足しています: %@";
+"error.data_corrupted" = "データが破損しています";
+"error.invalid_json" = "無効なJSON形式";
+"error.decoding_failed" = "デコードに失敗しました";
+"error.encoding_failed" = "エンコードに失敗しました";
+"error.cache_error" = "キャッシュエラー";
+"error.configuration_error" = "設定エラー";
+"error.permission_denied" = "権限が拒否されました";
+"error.resource_unavailable" = "リソースが利用できません";
+"error.compatibility_error" = "互換性エラー";
+"error.internal_error" = "内部エラー";
+"error.unexpected_error" = "予期しないエラー";
+"error.system_error" = "システムエラー";
+"error.network_timeout" = "ネットワークタイムアウト: %@";
+"error.network_unavailable" = "ネットワークが利用できません: %@";
+"error.dns_error" = "DNSエラー: %@";
+"error.invalid_url" = "無効なURL: %@";
+"error.ssl_error" = "SSL/TLSエラー: %@";
+"error.authentication_failed" = "認証に失敗しました: %@";
+"error.authorization_failed" = "認可に失敗しました: %@";
+"error.server_error_with_code" = "サーバーエラー (%d): %@";
+"error.data_expired" = "データが期限切れです";
+"error.missing_configuration" = "設定が不足しています: %@";
+"error.invalid_configuration" = "無効な設定: %@";
+"error.file_operation_timeout" = "ファイル操作タイムアウト: %@";
+"error.file_locked" = "ファイルがロックされています: %@";
+"error.invalid_file_path" = "無効なファイルパス: %@";
+"error.encoding_error" = "エンコードエラー: %@";
+
+// MARK: - ビジネスメッセージ
+"booking.data_loaded" = "予約データの読み込みが成功しました";
+"booking.data_expired" = "予約データが期限切れです";
+"booking.data_invalid" = "無効な予約データ";
+"booking.segment_not_found" = "予約セグメントが見つかりません";
+"booking.ship_reference_invalid" = "無効な船舶参照番号: %@";
+"booking.duration_invalid" = "無効な期間: %@";
+"booking.price_invalid" = "無効な価格: %@";
+"booking.seats_unavailable" = "座席が利用できません: %@";
+"booking.time_conflict" = "時間の競合";
+"booking.route_invalid" = "無効なルート設定";
+
+// MARK: - パフォーマンス監視メッセージ
+"performance.metric_recorded" = "パフォーマンス指標が記録されました";
+"performance.statistics_generated" = "パフォーマンス統計が生成されました";
+"performance.data_exported" = "パフォーマンスデータがエクスポートされました";
+"performance.data_cleared" = "パフォーマンスデータがクリアされました";
+"performance.memory_usage" = "メモリ使用量";
+"performance.execution_time" = "実行時間";
+"performance.network_latency" = "ネットワーク遅延";
+"performance.cache_hit_rate" = "キャッシュヒット率";
+"performance.error_rate" = "エラー率";
+"performance.throughput" = "スループット";
+"performance.response_size" = "レスポンスサイズ";
+"performance.retry_count" = "再試行回数";
+"performance.validation_time" = "検証時間";
+
+// MARK: - データ検証メッセージ
+"validation.required_field_missing" = "必須フィールドが不足しています: %@";
+"validation.invalid_format" = "無効な形式: %@";
+"validation.invalid_value" = "無効な値: %@";
+"validation.business_rule_violation" = "ビジネスルール違反: %@";
+"validation.data_inconsistency" = "データの不整合: %@";
+"validation.constraint_violation" = "制約違反: %@";
+"validation.data_corruption" = "データ破損: %@";
+"validation.reference_integrity" = "参照整合性エラー: %@";
+"validation.duplicate_data" = "重複データ: %@";
+"validation.invalid_date" = "無効な日付: %@";
+"validation.date_out_of_range" = "日付が範囲外です: %@";
+"validation.expired_data" = "データが期限切れです: %@";
+"validation.invalid_url" = "無効なURL: %@";
+"validation.network_data_error" = "ネットワークデータエラー: %@";
+
+// MARK: - 再試行メカニズムメッセージ
+"retry.attempt_failed" = "再試行 %d が失敗しました";
+"retry.max_attempts_reached" = "最大再試行回数に達しました";
+"retry.exponential_backoff" = "指数バックオフ戦略を使用";
+"retry.linear_backoff" = "線形バックオフ戦略を使用";
+"retry.fixed_delay" = "固定遅延戦略を使用";
+"retry.adaptive_strategy" = "適応的再試行戦略を使用";
+"retry.no_retry" = "再試行戦略なし";
+"retry.delay_calculated" = "再試行遅延計算: %.2f 秒";
+"retry.strategy_changed" = "再試行戦略が変更されました: %@";
+"retry.success_after_retry" = "%d 回の再試行後に成功";
+
+// MARK: - キャッシュメッセージ
+"cache.hit" = "キャッシュヒット";
+"cache.miss" = "キャッシュミス";
+"cache.expired" = "キャッシュが期限切れです";
+"cache.invalidated" = "キャッシュが無効化されました";
+"cache.cleared" = "キャッシュがクリアされました";
+"cache.warmed_up" = "キャッシュがウォームアップされました";
+"cache.statistics_updated" = "キャッシュ統計が更新されました";
+"cache.memory_limit_reached" = "キャッシュメモリ制限に達しました";
+"cache.item_evicted" = "キャッシュアイテムが削除されました";
+"cache.size_exceeded" = "キャッシュサイズが制限を超えました";
