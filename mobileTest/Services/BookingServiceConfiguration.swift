@@ -23,6 +23,20 @@ enum PerformanceMonitoringLevel: String, CaseIterable {
     case disabled = "禁用"
 }
 
+// MARK: - 压缩支持级别
+enum CompressionSupportLevel: String, CaseIterable {
+    case full = "完整"
+    case basic = "基础"
+    case disabled = "禁用"
+}
+
+// MARK: - 版本控制级别
+enum VersionControlLevel: String, CaseIterable {
+    case full = "完整"
+    case basic = "基础"
+    case disabled = "禁用"
+}
+
 // MARK: - 预订服务配置协议
 protocol BookingServiceConfigurationProtocol {
     /// 数据文件名（不包含扩展名）
@@ -63,6 +77,36 @@ protocol BookingServiceConfigurationProtocol {
     
     /// 性能监控详细程度
     var performanceMonitoringLevel: PerformanceMonitoringLevel { get }
+    
+    /// 是否启用压缩支持
+    var enableCompression: Bool { get }
+    
+    /// 压缩支持级别
+    var compressionSupportLevel: CompressionSupportLevel { get }
+    
+    /// 是否自动解压缩文件
+    var autoDecompressFiles: Bool { get }
+    
+    /// 支持的压缩格式列表
+    var supportedCompressionFormats: [CompressionFormat] { get }
+    
+    /// 是否启用版本控制
+    var enableVersionControl: Bool { get }
+    
+    /// 版本控制级别
+    var versionControlLevel: VersionControlLevel { get }
+    
+    /// 版本策略
+    var versionStrategy: VersionStrategy { get }
+    
+    /// 是否自动迁移数据
+    var autoMigrateData: Bool { get }
+    
+    /// 支持的最低版本
+    var minimumSupportedVersion: VersionInfo { get }
+    
+    /// 支持的最高版本
+    var maximumSupportedVersion: VersionInfo { get }
 }
 
 // MARK: - 默认配置实现
@@ -80,6 +124,16 @@ struct DefaultBookingServiceConfiguration: BookingServiceConfigurationProtocol {
     let validationStrictness: ValidationStrictness
     let enablePerformanceMonitoring: Bool
     let performanceMonitoringLevel: PerformanceMonitoringLevel
+    let enableCompression: Bool
+    let compressionSupportLevel: CompressionSupportLevel
+    let autoDecompressFiles: Bool
+    let supportedCompressionFormats: [CompressionFormat]
+    let enableVersionControl: Bool
+    let versionControlLevel: VersionControlLevel
+    let versionStrategy: VersionStrategy
+    let autoMigrateData: Bool
+    let minimumSupportedVersion: VersionInfo
+    let maximumSupportedVersion: VersionInfo
     
     /// 默认初始化器
     init(
@@ -95,7 +149,17 @@ struct DefaultBookingServiceConfiguration: BookingServiceConfigurationProtocol {
         enableDataValidation: Bool = true,
         validationStrictness: ValidationStrictness = .normal,
         enablePerformanceMonitoring: Bool = true,
-        performanceMonitoringLevel: PerformanceMonitoringLevel = .standard
+        performanceMonitoringLevel: PerformanceMonitoringLevel = .standard,
+        enableCompression: Bool = true,
+        compressionSupportLevel: CompressionSupportLevel = .basic,
+        autoDecompressFiles: Bool = true,
+        supportedCompressionFormats: [CompressionFormat] = [.gzip, .deflate, .lz4, .lzfse],
+        enableVersionControl: Bool = true,
+        versionControlLevel: VersionControlLevel = .basic,
+        versionStrategy: VersionStrategy = .autoMigrate,
+        autoMigrateData: Bool = true,
+        minimumSupportedVersion: VersionInfo = VersionInfo(major: 1, minor: 0, patch: 0, build: nil, releaseDate: nil, description: "最低支持版本"),
+        maximumSupportedVersion: VersionInfo = VersionInfo(major: 2, minor: 0, patch: 0, build: nil, releaseDate: nil, description: "最高支持版本")
     ) {
         self.fileName = fileName
         self.fileExtension = fileExtension
@@ -110,6 +174,16 @@ struct DefaultBookingServiceConfiguration: BookingServiceConfigurationProtocol {
         self.validationStrictness = validationStrictness
         self.enablePerformanceMonitoring = enablePerformanceMonitoring
         self.performanceMonitoringLevel = performanceMonitoringLevel
+        self.enableCompression = enableCompression
+        self.compressionSupportLevel = compressionSupportLevel
+        self.autoDecompressFiles = autoDecompressFiles
+        self.supportedCompressionFormats = supportedCompressionFormats
+        self.enableVersionControl = enableVersionControl
+        self.versionControlLevel = versionControlLevel
+        self.versionStrategy = versionStrategy
+        self.autoMigrateData = autoMigrateData
+        self.minimumSupportedVersion = minimumSupportedVersion
+        self.maximumSupportedVersion = maximumSupportedVersion
     }
 }
 
@@ -128,6 +202,16 @@ struct ProductionBookingServiceConfiguration: BookingServiceConfigurationProtoco
     let validationStrictness: ValidationStrictness = .strict
     let enablePerformanceMonitoring: Bool = true
     let performanceMonitoringLevel: PerformanceMonitoringLevel = .detailed
+    let enableCompression: Bool = true
+    let compressionSupportLevel: CompressionSupportLevel = .full
+    let autoDecompressFiles: Bool = true
+    let supportedCompressionFormats: [CompressionFormat] = [.gzip, .deflate, .lz4, .lzfse, .lzma, .zlib]
+    let enableVersionControl: Bool = true
+    let versionControlLevel: VersionControlLevel = .full
+    let versionStrategy: VersionStrategy = .autoMigrate
+    let autoMigrateData: Bool = true
+    let minimumSupportedVersion: VersionInfo = VersionInfo(major: 1, minor: 0, patch: 0, build: nil, releaseDate: nil, description: "最低支持版本")
+    let maximumSupportedVersion: VersionInfo = VersionInfo(major: 2, minor: 0, patch: 0, build: nil, releaseDate: nil, description: "最高支持版本")
 }
 
 // MARK: - 测试环境配置
@@ -145,6 +229,16 @@ struct TestBookingServiceConfiguration: BookingServiceConfigurationProtocol {
     let validationStrictness: ValidationStrictness = .disabled
     let enablePerformanceMonitoring: Bool = false
     let performanceMonitoringLevel: PerformanceMonitoringLevel = .disabled
+    let enableCompression: Bool = false
+    let compressionSupportLevel: CompressionSupportLevel = .disabled
+    let autoDecompressFiles: Bool = false
+    let supportedCompressionFormats: [CompressionFormat] = []
+    let enableVersionControl: Bool = false
+    let versionControlLevel: VersionControlLevel = .disabled
+    let versionStrategy: VersionStrategy = .strict
+    let autoMigrateData: Bool = false
+    let minimumSupportedVersion: VersionInfo = VersionInfo(major: 1, minor: 0, patch: 0, build: nil, releaseDate: nil, description: "测试版本")
+    let maximumSupportedVersion: VersionInfo = VersionInfo(major: 1, minor: 0, patch: 0, build: nil, releaseDate: nil, description: "测试版本")
     
     init(fileName: String = "booking") {
         self.fileName = fileName
@@ -182,7 +276,17 @@ enum BookingServiceConfigurationFactory {
         enableDataValidation: Bool = true,
         validationStrictness: ValidationStrictness = .normal,
         enablePerformanceMonitoring: Bool = true,
-        performanceMonitoringLevel: PerformanceMonitoringLevel = .standard
+        performanceMonitoringLevel: PerformanceMonitoringLevel = .standard,
+        enableCompression: Bool = true,
+        compressionSupportLevel: CompressionSupportLevel = .basic,
+        autoDecompressFiles: Bool = true,
+        supportedCompressionFormats: [CompressionFormat] = [.gzip, .deflate, .lz4, .lzfse],
+        enableVersionControl: Bool = true,
+        versionControlLevel: VersionControlLevel = .basic,
+        versionStrategy: VersionStrategy = .autoMigrate,
+        autoMigrateData: Bool = true,
+        minimumSupportedVersion: VersionInfo = VersionInfo(major: 1, minor: 0, patch: 0, build: nil, releaseDate: nil, description: "最低支持版本"),
+        maximumSupportedVersion: VersionInfo = VersionInfo(major: 2, minor: 0, patch: 0, build: nil, releaseDate: nil, description: "最高支持版本")
     ) -> BookingServiceConfigurationProtocol {
         return DefaultBookingServiceConfiguration(
             fileName: fileName,
@@ -197,7 +301,52 @@ enum BookingServiceConfigurationFactory {
             enableDataValidation: enableDataValidation,
             validationStrictness: validationStrictness,
             enablePerformanceMonitoring: enablePerformanceMonitoring,
-            performanceMonitoringLevel: performanceMonitoringLevel
+            performanceMonitoringLevel: performanceMonitoringLevel,
+            enableCompression: enableCompression,
+            compressionSupportLevel: compressionSupportLevel,
+            autoDecompressFiles: autoDecompressFiles,
+            supportedCompressionFormats: supportedCompressionFormats,
+            enableVersionControl: enableVersionControl,
+            versionControlLevel: versionControlLevel,
+            versionStrategy: versionStrategy,
+            autoMigrateData: autoMigrateData,
+            minimumSupportedVersion: minimumSupportedVersion,
+            maximumSupportedVersion: maximumSupportedVersion
+        )
+    }
+    
+    /// 创建支持压缩的配置
+    static func createWithCompression(
+        fileName: String = "booking",
+        fileExtension: String = "json",
+        compressionSupportLevel: CompressionSupportLevel = .full,
+        autoDecompressFiles: Bool = true
+    ) -> BookingServiceConfigurationProtocol {
+        return DefaultBookingServiceConfiguration(
+            fileName: fileName,
+            fileExtension: fileExtension,
+            enableCompression: true,
+            compressionSupportLevel: compressionSupportLevel,
+            autoDecompressFiles: autoDecompressFiles,
+            supportedCompressionFormats: [.gzip, .deflate, .lz4, .lzfse, .lzma, .zlib]
+        )
+    }
+    
+    /// 创建支持版本控制的配置
+    static func createWithVersionControl(
+        fileName: String = "booking",
+        fileExtension: String = "json",
+        versionControlLevel: VersionControlLevel = .full,
+        versionStrategy: VersionStrategy = .autoMigrate,
+        autoMigrateData: Bool = true
+    ) -> BookingServiceConfigurationProtocol {
+        return DefaultBookingServiceConfiguration(
+            fileName: fileName,
+            fileExtension: fileExtension,
+            enableVersionControl: true,
+            versionControlLevel: versionControlLevel,
+            versionStrategy: versionStrategy,
+            autoMigrateData: autoMigrateData
         )
     }
 }

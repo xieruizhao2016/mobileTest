@@ -13,6 +13,51 @@ protocol BookingServiceProtocol {
     func fetchBookingDataWithTimestamp() async throws -> (data: BookingData, timestamp: Date)
     func fetchBookingDataFromRemote(url: URL) async throws -> BookingData
     func fetchBookingDataWithProgress(progressCallback: @escaping (Double) -> Void) async throws -> BookingData
+    
+    /// 获取压缩文件数据
+    /// - Parameters:
+    ///   - fileName: 文件名（不包含扩展名）
+    ///   - fileExtension: 文件扩展名
+    ///   - autoDecompress: 是否自动解压缩
+    /// - Returns: BookingData对象
+    /// - Throws: BookingDataError
+    func fetchCompressedBookingData(fileName: String, fileExtension: String, autoDecompress: Bool) async throws -> BookingData
+    
+    /// 从远程URL获取压缩文件数据
+    /// - Parameters:
+    ///   - url: 远程文件URL
+    ///   - autoDecompress: 是否自动解压缩
+    /// - Returns: BookingData对象
+    /// - Throws: BookingDataError
+    func fetchCompressedBookingDataFromRemote(url: URL, autoDecompress: Bool) async throws -> BookingData
+    
+    /// 检测文件是否为压缩格式
+    /// - Parameter data: 文件数据
+    /// - Returns: 压缩信息，如果不是压缩格式则返回nil
+    func detectCompressionFormat(from data: Data) -> CompressionInfo?
+    
+    /// 检测数据格式版本
+    /// - Parameter data: 要检测的数据
+    /// - Returns: 版本信息，如果无法检测则返回nil
+    func detectDataVersion(from data: Data) -> VersionInfo?
+    
+    /// 检查版本兼容性
+    /// - Parameters:
+    ///   - sourceVersion: 源版本
+    ///   - targetVersion: 目标版本
+    /// - Returns: 兼容性级别
+    func checkVersionCompatibility(sourceVersion: VersionInfo, targetVersion: VersionInfo) -> CompatibilityLevel
+    
+    /// 迁移数据到目标版本
+    /// - Parameters:
+    ///   - data: 要迁移的数据
+    ///   - targetVersion: 目标版本
+    /// - Returns: 迁移结果
+    func migrateData(_ data: Data, to targetVersion: VersionInfo) async throws -> MigrationResult
+    
+    /// 获取版本历史
+    /// - Returns: 版本历史列表
+    func getVersionHistory() -> [VersionInfo]
 }
 
 // MARK: - 预订服务实现
@@ -25,6 +70,7 @@ class BookingService: BookingServiceProtocol {
     private let dataValidator: DataValidatorProtocol
     private let performanceMonitor: PerformanceMonitorProtocol
     private let performanceDecorator: PerformanceMonitoringDecorator
+    private let versionManager: VersionManagerProtocol
     
     // MARK: - 初始化器
     
@@ -59,9 +105,14 @@ class BookingService: BookingServiceProtocol {
         }
         
         // 创建异步文件读取器
+        let compressionManager = configuration.enableCompression ? 
+            CompressionManagerFactory.createDefault(enableVerboseLogging: configuration.enableVerboseLogging) :
+            CompressionManagerFactory.createDisabled()
+        
         self.fileReader = AsyncFileReaderFactory.createDefault(
             enableVerboseLogging: configuration.enableVerboseLogging,
-            retryConfiguration: configuration.retryConfiguration
+            retryConfiguration: configuration.retryConfiguration,
+            compressionManager: compressionManager
         )
         
         // 创建数据验证器
@@ -73,6 +124,9 @@ class BookingService: BookingServiceProtocol {
             monitor: self.performanceMonitor,
             enableVerboseLogging: configuration.enableVerboseLogging
         )
+        
+        // 创建版本管理器
+        self.versionManager = Self.createVersionManager(configuration: configuration)
     }
     
     /// 使用指定配置和文件读取器初始化（用于测试）
@@ -112,6 +166,9 @@ class BookingService: BookingServiceProtocol {
             monitor: self.performanceMonitor,
             enableVerboseLogging: configuration.enableVerboseLogging
         )
+        
+        // 创建版本管理器
+        self.versionManager = Self.createVersionManager(configuration: configuration)
     }
     
     // MARK: - 公共方法
@@ -306,6 +363,31 @@ class BookingService: BookingServiceProtocol {
             return PerformanceMonitorFactory.createLightweight(enableVerboseLogging: configuration.enableVerboseLogging)
         case .disabled:
             return EmptyPerformanceMonitor()
+        }
+    }
+    
+    /// 创建版本管理器
+    /// - Parameter configuration: 服务配置
+    /// - Returns: 版本管理器实例
+    private static func createVersionManager(configuration: BookingServiceConfigurationProtocol) -> VersionManagerProtocol {
+        guard configuration.enableVersionControl else {
+            // 如果禁用版本控制，返回一个空的版本管理器
+            return VersionManagerFactory.createDisabled()
+        }
+        
+        switch configuration.versionControlLevel {
+        case .full:
+            return VersionManagerFactory.createCustom(
+                currentVersion: configuration.maximumSupportedVersion,
+                minimumSupportedVersion: configuration.minimumSupportedVersion,
+                maximumSupportedVersion: configuration.maximumSupportedVersion,
+                versionStrategy: configuration.versionStrategy,
+                enableVerboseLogging: configuration.enableVerboseLogging
+            )
+        case .basic:
+            return VersionManagerFactory.createDefault(enableVerboseLogging: configuration.enableVerboseLogging)
+        case .disabled:
+            return VersionManagerFactory.createDisabled()
         }
     }
     
@@ -533,5 +615,196 @@ extension BookingService {
         let finalError = lastError as? BookingDataError ?? BookingDataError.networkError("重试失败")
         ErrorHandler.logError(finalError, context: "BookingService.fetchBookingDataWithRetry", enableVerboseLogging: configuration.enableVerboseLogging)
         throw finalError
+    }
+    
+    // MARK: - 压缩文件读取方法
+    
+    /// 获取压缩文件数据
+    /// - Parameters:
+    ///   - fileName: 文件名（不包含扩展名）
+    ///   - fileExtension: 文件扩展名
+    ///   - autoDecompress: 是否自动解压缩
+    /// - Returns: BookingData对象
+    /// - Throws: BookingDataError
+    func fetchCompressedBookingData(fileName: String, fileExtension: String, autoDecompress: Bool) async throws -> BookingData {
+        log("📦 [BookingService] 开始获取压缩文件数据: \(fileName).\(fileExtension)")
+        
+        guard configuration.enableCompression else {
+            let error = BookingDataError.unsupportedOperation("压缩功能已禁用")
+            ErrorHandler.logError(error, context: "BookingService.fetchCompressedBookingData", enableVerboseLogging: configuration.enableVerboseLogging)
+            throw error
+        }
+        
+        // 检查缓存
+        if configuration.enableCaching {
+            let cacheKey = "compressed_\(fileName).\(fileExtension)"
+            if let cachedData: BookingData = cacheManager.get(key: cacheKey) {
+                log("📦 [BookingService] 从缓存获取压缩数据")
+                return cachedData
+            }
+        }
+        
+        do {
+            let data = try await fileReader.readCompressedFile(
+                fileName: fileName,
+                fileExtension: fileExtension,
+                bundle: .main,
+                autoDecompress: autoDecompress
+            )
+            let bookingData = try await parseBookingData(from: data)
+            
+            // 缓存数据
+            if configuration.enableCaching {
+                let cacheKey = "compressed_\(fileName).\(fileExtension)"
+                cacheManager.set(key: cacheKey, value: bookingData)
+            }
+            
+            log("✅ [BookingService] 成功获取压缩文件数据")
+            if configuration.enableVerboseLogging {
+                log("📊 [BookingService] 压缩数据详情:")
+                log("   - 船舶参考号: \(bookingData.shipReference)")
+                log("   - 过期时间: \(bookingData.formattedExpiryTime)")
+                log("   - 持续时间: \(bookingData.formattedDuration)")
+                log("   - 航段数量: \(bookingData.segments.count)")
+                log("   - 数据是否过期: \(bookingData.isExpired ? "是" : "否")")
+            }
+            
+            return bookingData
+        } catch let error as BookingDataError {
+            ErrorHandler.logError(error, context: "BookingService.fetchCompressedBookingData", enableVerboseLogging: configuration.enableVerboseLogging)
+            throw error
+        } catch {
+            let bookingError = ErrorHandler.handleFileSystemError(error, filePath: "\(fileName).\(fileExtension)")
+            ErrorHandler.logError(bookingError, context: "BookingService.fetchCompressedBookingData", enableVerboseLogging: configuration.enableVerboseLogging)
+            throw bookingError
+        }
+    }
+    
+    /// 从远程URL获取压缩文件数据
+    /// - Parameters:
+    ///   - url: 远程文件URL
+    ///   - autoDecompress: 是否自动解压缩
+    /// - Returns: BookingData对象
+    /// - Throws: BookingDataError
+    func fetchCompressedBookingDataFromRemote(url: URL, autoDecompress: Bool) async throws -> BookingData {
+        log("🌐 [BookingService] 开始从远程URL获取压缩文件数据: \(url.absoluteString)")
+        
+        guard configuration.enableCompression else {
+            let error = BookingDataError.unsupportedOperation("压缩功能已禁用")
+            ErrorHandler.logError(error, context: "BookingService.fetchCompressedBookingDataFromRemote", enableVerboseLogging: configuration.enableVerboseLogging)
+            throw error
+        }
+        
+        do {
+            let data = try await fileReader.readRemoteCompressedFile(
+                url: url,
+                timeout: configuration.requestTimeout,
+                autoDecompress: autoDecompress
+            )
+            let bookingData = try await parseBookingData(from: data)
+            
+            // 缓存远程压缩数据
+            if configuration.enableCaching {
+                let cacheKey = "remote_compressed_\(url.lastPathComponent)"
+                cacheManager.set(key: cacheKey, value: bookingData)
+            }
+            
+            log("✅ [BookingService] 成功从远程获取压缩文件数据")
+            if configuration.enableVerboseLogging {
+                log("📊 [BookingService] 远程压缩数据详情:")
+                log("   - 船舶参考号: \(bookingData.shipReference)")
+                log("   - 过期时间: \(bookingData.formattedExpiryTime)")
+                log("   - 持续时间: \(bookingData.formattedDuration)")
+                log("   - 航段数量: \(bookingData.segments.count)")
+                log("   - 数据是否过期: \(bookingData.isExpired ? "是" : "否")")
+            }
+            
+            return bookingData
+        } catch let error as BookingDataError {
+            ErrorHandler.logError(error, context: "BookingService.fetchCompressedBookingDataFromRemote", enableVerboseLogging: configuration.enableVerboseLogging)
+            throw error
+        } catch {
+            let bookingError = ErrorHandler.handleNetworkError(error, url: url.absoluteString)
+            ErrorHandler.logError(bookingError, context: "BookingService.fetchCompressedBookingDataFromRemote", enableVerboseLogging: configuration.enableVerboseLogging)
+            throw bookingError
+        }
+    }
+    
+    /// 检测文件是否为压缩格式
+    /// - Parameter data: 文件数据
+    /// - Returns: 压缩信息，如果不是压缩格式则返回nil
+    func detectCompressionFormat(from data: Data) -> CompressionInfo? {
+        return fileReader.detectCompressionFormat(from: data)
+    }
+    
+    // MARK: - 版本控制方法
+    
+    /// 检测数据格式版本
+    /// - Parameter data: 要检测的数据
+    /// - Returns: 版本信息，如果无法检测则返回nil
+    func detectDataVersion(from data: Data) -> VersionInfo? {
+        return versionManager.detectVersion(from: data)
+    }
+    
+    /// 检查版本兼容性
+    /// - Parameters:
+    ///   - sourceVersion: 源版本
+    ///   - targetVersion: 目标版本
+    /// - Returns: 兼容性级别
+    func checkVersionCompatibility(sourceVersion: VersionInfo, targetVersion: VersionInfo) -> CompatibilityLevel {
+        return versionManager.checkCompatibility(sourceVersion: sourceVersion, targetVersion: targetVersion)
+    }
+    
+    /// 迁移数据到目标版本
+    /// - Parameters:
+    ///   - data: 要迁移的数据
+    ///   - targetVersion: 目标版本
+    /// - Returns: 迁移结果
+    func migrateData(_ data: Data, to targetVersion: VersionInfo) async throws -> MigrationResult {
+        log("🔄 [BookingService] 开始数据迁移到版本: \(targetVersion.versionString)")
+        
+        guard configuration.enableVersionControl else {
+            let error = BookingDataError.unsupportedOperation("版本控制功能已禁用")
+            ErrorHandler.logError(error, context: "BookingService.migrateData", enableVerboseLogging: configuration.enableVerboseLogging)
+            throw error
+        }
+        
+        do {
+            let result = try await versionManager.migrateData(data, to: targetVersion)
+            
+            if result.isSuccessful {
+                log("✅ [BookingService] 数据迁移成功")
+                if configuration.enableVerboseLogging {
+                    log("📊 [BookingService] 迁移详情:")
+                    log("   - 源版本: \(result.sourceVersion.versionString)")
+                    log("   - 目标版本: \(result.targetVersion.versionString)")
+                    log("   - 迁移步骤数: \(result.migrationSteps.count)")
+                    if result.hasWarnings {
+                        log("   - 警告数量: \(result.warnings.count)")
+                    }
+                }
+            } else {
+                log("❌ [BookingService] 数据迁移失败")
+                if configuration.enableVerboseLogging {
+                    log("📊 [BookingService] 失败详情:")
+                    log("   - 错误数量: \(result.errors.count)")
+                    for error in result.errors {
+                        log("   - 错误: \(error)")
+                    }
+                }
+            }
+            
+            return result
+        } catch {
+            let bookingError = BookingDataError.versionMismatch("数据迁移失败: \(error.localizedDescription)")
+            ErrorHandler.logError(bookingError, context: "BookingService.migrateData", enableVerboseLogging: configuration.enableVerboseLogging)
+            throw bookingError
+        }
+    }
+    
+    /// 获取版本历史
+    /// - Returns: 版本历史列表
+    func getVersionHistory() -> [VersionInfo] {
+        return versionManager.getVersionHistory()
     }
 }

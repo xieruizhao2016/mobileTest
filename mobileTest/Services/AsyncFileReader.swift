@@ -49,6 +49,39 @@ protocol AsyncFileReaderProtocol {
         timeout: TimeInterval?,
         progressCallback: @escaping (Double) -> Void
     ) async throws -> Data
+    
+    /// 异步读取压缩文件
+    /// - Parameters:
+    ///   - fileName: 文件名（不包含扩展名）
+    ///   - fileExtension: 文件扩展名
+    ///   - bundle: Bundle实例
+    ///   - autoDecompress: 是否自动解压缩
+    /// - Returns: 文件数据（如果autoDecompress为true，返回解压缩后的数据）
+    /// - Throws: BookingDataError
+    func readCompressedFile(
+        fileName: String,
+        fileExtension: String,
+        bundle: Bundle,
+        autoDecompress: Bool
+    ) async throws -> Data
+    
+    /// 异步读取远程压缩文件
+    /// - Parameters:
+    ///   - url: 远程文件URL
+    ///   - timeout: 请求超时时间
+    ///   - autoDecompress: 是否自动解压缩
+    /// - Returns: 文件数据（如果autoDecompress为true，返回解压缩后的数据）
+    /// - Throws: BookingDataError
+    func readRemoteCompressedFile(
+        url: URL,
+        timeout: TimeInterval,
+        autoDecompress: Bool
+    ) async throws -> Data
+    
+    /// 检测文件是否为压缩格式
+    /// - Parameter data: 文件数据
+    /// - Returns: 压缩信息，如果不是压缩格式则返回nil
+    func detectCompressionFormat(from data: Data) -> CompressionInfo?
 }
 
 // MARK: - 异步文件读取实现
@@ -58,6 +91,7 @@ class AsyncFileReader: AsyncFileReaderProtocol {
     private let urlSession: URLSession
     private let enableVerboseLogging: Bool
     private let retryManager: RetryManager
+    private let compressionManager: CompressionManagerProtocol
     
     // MARK: - 初始化器
     
@@ -65,9 +99,11 @@ class AsyncFileReader: AsyncFileReaderProtocol {
     /// - Parameters:
     ///   - enableVerboseLogging: 是否启用详细日志
     ///   - retryConfiguration: 重试配置
-    init(enableVerboseLogging: Bool = true, retryConfiguration: RetryConfiguration = .default) {
+    ///   - compressionManager: 压缩管理器
+    init(enableVerboseLogging: Bool = true, retryConfiguration: RetryConfiguration = .default, compressionManager: CompressionManagerProtocol? = nil) {
         self.enableVerboseLogging = enableVerboseLogging
         self.retryManager = RetryManager(configuration: retryConfiguration, enableVerboseLogging: enableVerboseLogging)
+        self.compressionManager = compressionManager ?? CompressionManagerFactory.createDefault(enableVerboseLogging: enableVerboseLogging)
         
         // 配置URLSession
         let config = URLSessionConfiguration.default
@@ -367,6 +403,89 @@ extension AsyncFileReader {
         urlSession.invalidateAndCancel()
         log("🛑 [AsyncFileReader] 已取消所有网络请求")
     }
+    
+    // MARK: - 压缩文件读取方法
+    
+    /// 异步读取压缩文件
+    /// - Parameters:
+    ///   - fileName: 文件名（不包含扩展名）
+    ///   - fileExtension: 文件扩展名
+    ///   - bundle: Bundle实例
+    ///   - autoDecompress: 是否自动解压缩
+    /// - Returns: 文件数据（如果autoDecompress为true，返回解压缩后的数据）
+    /// - Throws: BookingDataError
+    func readCompressedFile(
+        fileName: String,
+        fileExtension: String,
+        bundle: Bundle,
+        autoDecompress: Bool
+    ) async throws -> Data {
+        log("📦 [AsyncFileReader] 开始读取压缩文件: \(fileName).\(fileExtension)")
+        
+        // 首先读取原始文件数据
+        let rawData = try await readLocalFile(fileName: fileName, fileExtension: fileExtension, bundle: bundle)
+        
+        // 检测压缩格式
+        guard let compressionInfo = compressionManager.detectCompressionFormat(from: rawData) else {
+            log("⚠️ [AsyncFileReader] 文件不是压缩格式，返回原始数据")
+            return rawData
+        }
+        
+        log("🔍 [AsyncFileReader] 检测到压缩格式: \(compressionInfo.format.displayName)")
+        
+        if autoDecompress {
+            log("🔄 [AsyncFileReader] 开始自动解压缩...")
+            let decompressedData = try await compressionManager.decompress(data: rawData, format: compressionInfo.format)
+            log("✅ [AsyncFileReader] 解压缩完成，原始大小: \(rawData.count) 字节，解压缩后大小: \(decompressedData.count) 字节")
+            return decompressedData
+        } else {
+            log("📦 [AsyncFileReader] 返回压缩数据，大小: \(rawData.count) 字节")
+            return rawData
+        }
+    }
+    
+    /// 异步读取远程压缩文件
+    /// - Parameters:
+    ///   - url: 远程文件URL
+    ///   - timeout: 请求超时时间
+    ///   - autoDecompress: 是否自动解压缩
+    /// - Returns: 文件数据（如果autoDecompress为true，返回解压缩后的数据）
+    /// - Throws: BookingDataError
+    func readRemoteCompressedFile(
+        url: URL,
+        timeout: TimeInterval,
+        autoDecompress: Bool
+    ) async throws -> Data {
+        log("🌐 [AsyncFileReader] 开始读取远程压缩文件: \(url.absoluteString)")
+        
+        // 首先读取原始文件数据
+        let rawData = try await readRemoteFile(url: url, timeout: timeout)
+        
+        // 检测压缩格式
+        guard let compressionInfo = compressionManager.detectCompressionFormat(from: rawData) else {
+            log("⚠️ [AsyncFileReader] 远程文件不是压缩格式，返回原始数据")
+            return rawData
+        }
+        
+        log("🔍 [AsyncFileReader] 检测到远程文件压缩格式: \(compressionInfo.format.displayName)")
+        
+        if autoDecompress {
+            log("🔄 [AsyncFileReader] 开始自动解压缩远程文件...")
+            let decompressedData = try await compressionManager.decompress(data: rawData, format: compressionInfo.format)
+            log("✅ [AsyncFileReader] 远程文件解压缩完成，原始大小: \(rawData.count) 字节，解压缩后大小: \(decompressedData.count) 字节")
+            return decompressedData
+        } else {
+            log("📦 [AsyncFileReader] 返回远程压缩数据，大小: \(rawData.count) 字节")
+            return rawData
+        }
+    }
+    
+    /// 检测文件是否为压缩格式
+    /// - Parameter data: 文件数据
+    /// - Returns: 压缩信息，如果不是压缩格式则返回nil
+    func detectCompressionFormat(from data: Data) -> CompressionInfo? {
+        return compressionManager.detectCompressionFormat(from: data)
+    }
 }
 
 // MARK: - 文件读取工厂
@@ -375,44 +494,38 @@ enum AsyncFileReaderFactory {
     /// - Parameters:
     ///   - enableVerboseLogging: 是否启用详细日志
     ///   - retryConfiguration: 重试配置
+    ///   - compressionManager: 压缩管理器
     /// - Returns: AsyncFileReader实例
-    static func createDefault(enableVerboseLogging: Bool = true, retryConfiguration: RetryConfiguration = .default) -> AsyncFileReader {
-        return AsyncFileReader(enableVerboseLogging: enableVerboseLogging, retryConfiguration: retryConfiguration)
+    static func createDefault(enableVerboseLogging: Bool = true, retryConfiguration: RetryConfiguration = .default, compressionManager: CompressionManagerProtocol? = nil) -> AsyncFileReader {
+        return AsyncFileReader(enableVerboseLogging: enableVerboseLogging, retryConfiguration: retryConfiguration, compressionManager: compressionManager)
     }
     
     /// 创建用于测试的异步文件读取器
     /// - Parameters:
     ///   - enableVerboseLogging: 是否启用详细日志
     ///   - retryConfiguration: 重试配置
+    ///   - compressionManager: 压缩管理器
     /// - Returns: AsyncFileReader实例
-    static func createForTesting(enableVerboseLogging: Bool = true, retryConfiguration: RetryConfiguration = .fast) -> AsyncFileReader {
-        let config = URLSessionConfiguration.ephemeral
-        config.timeoutIntervalForRequest = 5.0
-        config.timeoutIntervalForResource = 10.0
-        let urlSession = URLSession(configuration: config)
-        return AsyncFileReader(urlSession: urlSession, enableVerboseLogging: enableVerboseLogging, retryConfiguration: retryConfiguration)
+    static func createForTesting(enableVerboseLogging: Bool = true, retryConfiguration: RetryConfiguration = .fast, compressionManager: CompressionManagerProtocol? = nil) -> AsyncFileReader {
+        return AsyncFileReader(enableVerboseLogging: enableVerboseLogging, retryConfiguration: retryConfiguration, compressionManager: compressionManager)
     }
     
     /// 创建用于生产环境的异步文件读取器
     /// - Parameters:
     ///   - enableVerboseLogging: 是否启用详细日志
     ///   - retryConfiguration: 重试配置
+    ///   - compressionManager: 压缩管理器
     /// - Returns: AsyncFileReader实例
-    static func createForProduction(enableVerboseLogging: Bool = false, retryConfiguration: RetryConfiguration = .conservative) -> AsyncFileReader {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 15.0
-        config.timeoutIntervalForResource = 30.0
-        config.waitsForConnectivity = true
-        config.allowsCellularAccess = true
-        let urlSession = URLSession(configuration: config)
-        return AsyncFileReader(urlSession: urlSession, enableVerboseLogging: enableVerboseLogging, retryConfiguration: retryConfiguration)
+    static func createForProduction(enableVerboseLogging: Bool = false, retryConfiguration: RetryConfiguration = .conservative, compressionManager: CompressionManagerProtocol? = nil) -> AsyncFileReader {
+        return AsyncFileReader(enableVerboseLogging: enableVerboseLogging, retryConfiguration: retryConfiguration, compressionManager: compressionManager)
     }
     
     /// 创建高可靠性异步文件读取器
     /// - Parameters:
     ///   - enableVerboseLogging: 是否启用详细日志
+    ///   - compressionManager: 压缩管理器
     /// - Returns: AsyncFileReader实例
-    static func createHighReliability(enableVerboseLogging: Bool = true) -> AsyncFileReader {
+    static func createHighReliability(enableVerboseLogging: Bool = true, compressionManager: CompressionManagerProtocol? = nil) -> AsyncFileReader {
         let adaptiveConfig = RetryConfiguration(
             maxAttempts: 5,
             baseDelay: 1.0,
@@ -420,6 +533,16 @@ enum AsyncFileReaderFactory {
             strategy: AdaptiveRetryStrategy(),
             enabled: true
         )
-        return AsyncFileReader(enableVerboseLogging: enableVerboseLogging, retryConfiguration: adaptiveConfig)
+        return AsyncFileReader(enableVerboseLogging: enableVerboseLogging, retryConfiguration: adaptiveConfig, compressionManager: compressionManager)
+    }
+    
+    /// 创建支持压缩的异步文件读取器
+    /// - Parameters:
+    ///   - enableVerboseLogging: 是否启用详细日志
+    ///   - retryConfiguration: 重试配置
+    /// - Returns: AsyncFileReader实例
+    static func createWithCompression(enableVerboseLogging: Bool = true, retryConfiguration: RetryConfiguration = .default) -> AsyncFileReader {
+        let compressionManager = CompressionManagerFactory.createDefault(enableVerboseLogging: enableVerboseLogging)
+        return AsyncFileReader(enableVerboseLogging: enableVerboseLogging, retryConfiguration: retryConfiguration, compressionManager: compressionManager)
     }
 }
