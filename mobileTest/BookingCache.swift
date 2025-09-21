@@ -207,8 +207,21 @@ protocol AdvancedCacheProtocol {
     func warmup<T>(items: [(key: String, value: T)])
 }
 
+// MARK: - 缓存策略协议
+protocol CacheStrategyProtocol {
+    func getCachedDataWithStrategy(strategy: CacheStrategy) async throws -> CachedBookingData?
+    func saveDataWithStrategy(_ data: BookingData, timestamp: Date, strategy: CacheStrategy) async throws
+    func getCachedDataFromMemory() async throws -> CachedBookingData?
+    func getCachedDataFromDisk() async throws -> CachedBookingData?
+    func getCachedDataSmart() async throws -> CachedBookingData?
+    func makeSmartCacheDecision(dataSize: Int, availableMemory: UInt64, totalMemory: UInt64) -> CacheStrategy
+    func getMemoryInfo() -> (totalMemory: UInt64, availableMemory: UInt64)
+    func calculateAccurateDataSize(_ data: BookingData) -> Int
+    func formatBytes(_ bytes: Int) -> String
+}
+
 // MARK: - 统一缓存实现
-class BookingCache: BookingCacheProtocol, AdvancedCacheProtocol {
+class BookingCache: BookingCacheProtocol, AdvancedCacheProtocol, CacheStrategyProtocol {
     
     // MARK: - 属性
     private let userDefaults = UserDefaults.standard
@@ -818,6 +831,249 @@ class BookingCache: BookingCacheProtocol, AdvancedCacheProtocol {
         formatter.timeStyle = .short
         formatter.locale = Locale(identifier: "zh_CN")
         return formatter.string(from: date)
+    }
+    
+    // MARK: - 缓存策略方法 (CacheStrategyProtocol)
+    
+    /// 根据缓存策略获取缓存数据
+    /// - Parameter strategy: 缓存策略
+    /// - Returns: 缓存的预订数据，如果无效则返回nil
+    /// - Throws: BookingDataError
+    func getCachedDataWithStrategy(strategy: CacheStrategy) async throws -> CachedBookingData? {
+        print("🔍 [BookingCache] 根据策略检查缓存数据... (策略: \(strategy))")
+        
+        switch strategy {
+        case .memoryOnly:
+            return try await getCachedDataFromMemory()
+        case .diskOnly:
+            return try await getCachedDataFromDisk()
+        case .hybrid:
+            // 先检查内存，再检查磁盘
+            if let memoryData = try await getCachedDataFromMemory() {
+                return memoryData
+            }
+            return try await getCachedDataFromDisk()
+        case .smart:
+            // 智能策略：根据数据大小和访问频率决定
+            return try await getCachedDataSmart()
+            
+        case .disabled:
+            print("💾 [BookingCache] 缓存已禁用，返回nil")
+            return nil
+        }
+    }
+    
+    /// 从内存获取缓存数据
+    /// - Returns: 缓存的预订数据，如果无效则返回nil
+    /// - Throws: BookingDataError
+    func getCachedDataFromMemory() async throws -> CachedBookingData? {
+        print("🔍 [BookingCache] 从内存检查缓存数据...")
+        
+        // 暂时禁用异步内存缓存，直接返回nil
+        print("ℹ️ [BookingCache] 异步内存缓存功能已暂时禁用")
+        return nil
+    }
+    
+    /// 从磁盘获取缓存数据
+    /// - Returns: 缓存的预订数据，如果无效则返回nil
+    /// - Throws: BookingDataError
+    func getCachedDataFromDisk() async throws -> CachedBookingData? {
+        print("🔍 [BookingCache] 从磁盘检查缓存数据...")
+        
+        let cachedData = try load()
+        
+        if let cachedData = cachedData {
+            if cachedData.isValid {
+                print("✅ [BookingCache] 从磁盘找到有效缓存数据")
+                // 暂时禁用回填到内存缓存
+                print("ℹ️ [BookingCache] 内存缓存回填功能已暂时禁用")
+                return cachedData
+            } else {
+                print("⚠️ [BookingCache] 磁盘缓存数据已过期")
+                return nil
+            }
+        } else {
+            print("ℹ️ [BookingCache] 磁盘中无缓存数据")
+            return nil
+        }
+    }
+    
+    /// 智能缓存策略
+    /// - Returns: 缓存的预订数据，如果无效则返回nil
+    /// - Throws: BookingDataError
+    func getCachedDataSmart() async throws -> CachedBookingData? {
+        print("🔍 [BookingCache] 使用智能缓存策略...")
+        
+        // 智能策略：优先使用内存，如果内存没有则使用磁盘
+        // 同时考虑数据大小和访问频率
+        if let memoryData = try await getCachedDataFromMemory() {
+            return memoryData
+        }
+        
+        // 如果内存没有，尝试从磁盘获取
+        if let diskData = try await getCachedDataFromDisk() {
+            return diskData
+        }
+        
+        return nil
+    }
+    
+    /// 根据缓存策略保存数据
+    /// - Parameters:
+    ///   - data: 预订数据
+    ///   - timestamp: 时间戳
+    ///   - strategy: 缓存策略
+    /// - Throws: BookingDataError
+    func saveDataWithStrategy(_ data: BookingData, timestamp: Date, strategy: CacheStrategy) async throws {
+        let expiryTime = Date().addingTimeInterval(300) // 5分钟后过期
+        let cachedData = CachedBookingData(data: data, timestamp: timestamp, expiryTime: expiryTime)
+        
+        switch strategy {
+        case .memoryOnly:
+            // 暂时禁用异步内存缓存
+            print("💾 [BookingCache] 异步内存缓存功能已暂时禁用")
+            
+        case .diskOnly:
+            try save(data, timestamp: timestamp)
+            print("💾 [BookingCache] 数据已保存到磁盘缓存")
+            
+        case .hybrid:
+            // 暂时禁用异步内存缓存，只保存到磁盘
+            try save(data, timestamp: timestamp)
+            print("💾 [BookingCache] 数据已保存到磁盘缓存（混合模式暂时禁用内存缓存）")
+            
+        case .smart:
+            // 智能策略：暂时只保存到磁盘
+            try save(data, timestamp: timestamp)
+            print("💾 [BookingCache] 智能缓存策略暂时只保存到磁盘")
+            
+        case .disabled:
+            print("💾 [BookingCache] 缓存已禁用，跳过保存")
+        }
+    }
+    
+    /// 智能缓存决策
+    /// - Parameters:
+    ///   - dataSize: 数据大小
+    ///   - availableMemory: 可用内存
+    ///   - totalMemory: 总内存
+    /// - Returns: 缓存策略决策
+    func makeSmartCacheDecision(dataSize: Int, availableMemory: UInt64, totalMemory: UInt64) -> CacheStrategy {
+        let dataSizeUInt64 = UInt64(dataSize)
+        
+        // 如果数据太大（超过可用内存的50%），只保存到磁盘
+        if dataSizeUInt64 > availableMemory / 2 {
+            return .diskOnly
+        }
+        
+        // 如果数据较小（小于1MB）且内存充足，保存到内存
+        if dataSizeUInt64 < 1024 * 1024 && availableMemory > dataSizeUInt64 * 4 {
+            return .memoryOnly
+        }
+        
+        // 如果数据中等大小且内存充足，使用混合策略
+        if dataSizeUInt64 < 10 * 1024 * 1024 && availableMemory > dataSizeUInt64 * 2 {
+            return .hybrid
+        }
+        
+        // 默认保存到磁盘
+        return .diskOnly
+    }
+    
+    /// 获取系统内存信息
+    /// - Returns: 内存信息（总内存，可用内存）
+    func getMemoryInfo() -> (totalMemory: UInt64, availableMemory: UInt64) {
+        var info = mach_task_basic_info()
+        var count = mach_msg_type_number_t(MemoryLayout<mach_task_basic_info>.size)/4
+        
+        let kerr: kern_return_t = withUnsafeMutablePointer(to: &info) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
+                task_info(mach_task_self_,
+                         task_flavor_t(MACH_TASK_BASIC_INFO),
+                         $0,
+                         &count)
+            }
+        }
+        
+        if kerr == KERN_SUCCESS {
+            return (totalMemory: info.resident_size, availableMemory: info.resident_size)
+        }
+        
+        // 如果获取失败，返回默认值
+        return (totalMemory: 1024 * 1024 * 1024, availableMemory: 512 * 1024 * 1024) // 1GB总内存，512MB可用
+    }
+    
+    /// 准确计算数据大小
+    /// - Parameter data: 预订数据
+    /// - Returns: 准确的字节数
+    func calculateAccurateDataSize(_ data: BookingData) -> Int {
+        var totalSize = 0
+        
+        // 使用Mirror进行反射计算对象大小
+        let mirror = Mirror(reflecting: data)
+        for child in mirror.children {
+            if let label = child.label {
+                totalSize += calculatePropertySize(label: label, value: child.value)
+            }
+        }
+        
+        return totalSize
+    }
+    
+    /// 计算属性大小
+    /// - Parameters:
+    ///   - label: 属性名
+    ///   - value: 属性值
+    /// - Returns: 属性大小
+    private func calculatePropertySize(label: String, value: Any) -> Int {
+        var size = 0
+        
+        switch value {
+        case let stringValue as String:
+            // UTF-8编码的字符串大小
+            size += stringValue.utf8.count
+        case let arrayValue as [Any]:
+            // 数组大小
+            size += MemoryLayout<Any>.size * arrayValue.count
+            for item in arrayValue {
+                size += calculatePropertySize(label: "item", value: item)
+            }
+        case let segment as Segment:
+            // Segment对象大小
+            size += calculateSegmentSize(segment)
+        default:
+            // 其他类型使用内存布局估算
+            size += MemoryLayout<Any>.size
+        }
+        
+        return size
+    }
+    
+    /// 计算Segment对象大小
+    /// - Parameter segment: 航段对象
+    /// - Returns: 航段大小
+    private func calculateSegmentSize(_ segment: Segment) -> Int {
+        var size = 0
+        
+        // 使用Mirror计算Segment大小
+        let mirror = Mirror(reflecting: segment)
+        for child in mirror.children {
+            if let label = child.label {
+                size += calculatePropertySize(label: label, value: child.value)
+            }
+        }
+        
+        return size
+    }
+    
+    /// 格式化字节数
+    /// - Parameter bytes: 字节数
+    /// - Returns: 格式化的字符串
+    func formatBytes(_ bytes: Int) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.allowedUnits = [.useKB, .useMB, .useGB]
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: Int64(bytes))
     }
 }
 

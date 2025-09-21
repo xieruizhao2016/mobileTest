@@ -99,7 +99,7 @@ class CompressionTests: XCTestCase {
         XCTAssertFalse(isValidInvalid, "无效的GZIP数据应该不通过验证")
     }
     
-    func testCompressionInfo() {
+    func testCompressionInfo() async {
         let originalData = "Test data".data(using: .utf8)!
         let compressedData = try! await compressionManager.compress(data: originalData, format: .gzip)
         

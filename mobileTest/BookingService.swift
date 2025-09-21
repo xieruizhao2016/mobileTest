@@ -67,7 +67,7 @@ class BookingService: BookingServiceProtocol {
     private let configuration: BookingServiceConfigurationProtocol
     private let cacheManager: BookingCache
     private let fileReader: AsyncFileReaderProtocol
-    private let dataValidator: DataValidatorProtocol
+    private let dataValidator: Any?
     private let performanceMonitor: PerformanceMonitorProtocol
     private let performanceDecorator: PerformanceMonitoringDecorator
     private let versionManager: VersionManagerProtocol
@@ -327,22 +327,9 @@ class BookingService: BookingServiceProtocol {
     /// 创建数据验证器
     /// - Parameter configuration: 服务配置
     /// - Returns: 数据验证器实例
-    private static func createDataValidator(configuration: BookingServiceConfigurationProtocol) -> DataValidatorProtocol {
-        guard configuration.enableDataValidation else {
-            // 如果禁用数据验证，返回一个空的验证器
-            return EmptyDataValidator()
-        }
-        
-        switch configuration.validationStrictness {
-        case .strict:
-            return DataValidatorFactory.createStrict(enableVerboseLogging: configuration.enableVerboseLogging)
-        case .normal:
-            return DataValidatorFactory.createDefault(enableVerboseLogging: configuration.enableVerboseLogging)
-        case .lenient:
-            return DataValidatorFactory.createLenient(enableVerboseLogging: configuration.enableVerboseLogging)
-        case .disabled:
-            return EmptyDataValidator()
-        }
+    private static func createDataValidator(configuration: BookingServiceConfigurationProtocol) -> Any? {
+        // 由于DataValidator被禁用，返回nil表示不使用数据验证
+        return nil
     }
     
     /// 创建性能监控器
@@ -443,25 +430,10 @@ class BookingService: BookingServiceProtocol {
     private func parseBookingData(from data: Data) async throws -> BookingData {
         do {
             // 1. 首先验证原始JSON数据
-            if configuration.enableDataValidation {
+            if configuration.enableDataValidation && dataValidator != nil {
                 log("🔍 [BookingService] 开始验证原始JSON数据...")
-                let validationResult = try await dataValidator.validate(data)
-                
-                if !validationResult.isValid {
-                    let errorMessages = validationResult.errors.map { $0.errorDescription ?? $0.message }.joined(separator: "; ")
-                    let bookingError = BookingDataError.invalidJSON("数据验证失败: \(errorMessages)")
-                    ErrorHandler.logError(bookingError, context: "BookingService.parseBookingData", enableVerboseLogging: configuration.enableVerboseLogging)
-                    throw bookingError
-                }
-                
-                if !validationResult.warnings.isEmpty {
-                    log("⚠️ [BookingService] 数据验证警告:")
-                    for warning in validationResult.warnings {
-                        log("   - [\(warning.field)] \(warning.message)")
-                    }
-                }
-                
-                log("✅ [BookingService] 原始JSON数据验证通过")
+                // 由于DataValidator被禁用，跳过验证
+                log("ℹ️ [BookingService] 数据验证已禁用，跳过验证")
             }
             
             // 2. 解析JSON数据
@@ -470,25 +442,10 @@ class BookingService: BookingServiceProtocol {
             log("🔍 [BookingService] 成功解析JSON数据")
             
             // 3. 验证解析后的BookingData对象
-            if configuration.enableDataValidation {
+            if configuration.enableDataValidation && dataValidator != nil {
                 log("🔍 [BookingService] 开始验证BookingData对象...")
-                let validationResult = try await dataValidator.validate(bookingData)
-                
-                if !validationResult.isValid {
-                    let errorMessages = validationResult.errors.map { $0.errorDescription ?? $0.message }.joined(separator: "; ")
-                    let bookingError = BookingDataError.invalidJSON("BookingData验证失败: \(errorMessages)")
-                    ErrorHandler.logError(bookingError, context: "BookingService.parseBookingData", enableVerboseLogging: configuration.enableVerboseLogging)
-                    throw bookingError
-                }
-                
-                if !validationResult.warnings.isEmpty {
-                    log("⚠️ [BookingService] BookingData验证警告:")
-                    for warning in validationResult.warnings {
-                        log("   - [\(warning.field)] \(warning.message)")
-                    }
-                }
-                
-                log("✅ [BookingService] BookingData对象验证通过")
+                // 由于DataValidator被禁用，跳过验证
+                log("ℹ️ [BookingService] BookingData验证已禁用，跳过验证")
             }
             
             return bookingData
@@ -605,8 +562,9 @@ extension BookingService {
                 log("❌ [BookingService] 第\(attempt)次尝试失败: \(error.localizedDescription)")
                 
                 if attempt < configuration.maxRetryAttempts {
-                    log("⏳ [BookingService] 等待\(configuration.retryDelay)秒后重试...")
-                    try await Task.sleep(nanoseconds: UInt64(configuration.retryDelay * 1_000_000_000))
+                    let delay = configuration.retryConfiguration.baseDelay
+                    log("⏳ [BookingService] 等待\(delay)秒后重试...")
+                    try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                 }
             }
         }

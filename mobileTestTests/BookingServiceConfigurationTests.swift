@@ -22,7 +22,7 @@ final class BookingServiceConfigurationTests: XCTestCase {
         XCTAssertTrue(config.enableCaching)
         XCTAssertEqual(config.cacheExpirationTime, 300.0)
         XCTAssertEqual(config.maxRetryAttempts, 3)
-        XCTAssertEqual(config.retryDelay, 1.0)
+        XCTAssertEqual(config.retryConfiguration.baseDelay, 1.0)
     }
     
     func testCreateProductionConfiguration() throws {
@@ -35,7 +35,7 @@ final class BookingServiceConfigurationTests: XCTestCase {
         XCTAssertTrue(config.enableCaching)
         XCTAssertEqual(config.cacheExpirationTime, 600.0)
         XCTAssertEqual(config.maxRetryAttempts, 2)
-        XCTAssertEqual(config.retryDelay, 2.0)
+        XCTAssertEqual(config.retryConfiguration.baseDelay, 2.0)
     }
     
     func testCreateTestConfiguration() throws {
@@ -48,7 +48,7 @@ final class BookingServiceConfigurationTests: XCTestCase {
         XCTAssertFalse(config.enableCaching)
         XCTAssertEqual(config.cacheExpirationTime, 60.0)
         XCTAssertEqual(config.maxRetryAttempts, 1)
-        XCTAssertEqual(config.retryDelay, 0.5)
+        XCTAssertEqual(config.retryConfiguration.baseDelay, 0.5)
     }
     
     func testCreateTestConfigurationWithCustomFileName() throws {
@@ -70,7 +70,7 @@ final class BookingServiceConfigurationTests: XCTestCase {
             enableCaching: false,
             cacheExpirationTime: 120.0,
             maxRetryAttempts: 5,
-            retryDelay: 3.0
+            retryConfiguration: RetryConfiguration(baseDelay: 3.0, maxDelay: 10.0, maxAttempts: 5, strategy: .exponential)
         )
         
         XCTAssertEqual(config.fileName, "custom_booking")
@@ -80,7 +80,7 @@ final class BookingServiceConfigurationTests: XCTestCase {
         XCTAssertFalse(config.enableCaching)
         XCTAssertEqual(config.cacheExpirationTime, 120.0)
         XCTAssertEqual(config.maxRetryAttempts, 5)
-        XCTAssertEqual(config.retryDelay, 3.0)
+        XCTAssertEqual(config.retryConfiguration.baseDelay, 3.0)
     }
     
     // MARK: - 配置实现测试
@@ -103,7 +103,7 @@ final class BookingServiceConfigurationTests: XCTestCase {
             enableCaching: false,
             cacheExpirationTime: 180.0,
             maxRetryAttempts: 4,
-            retryDelay: 1.5
+            retryConfiguration: RetryConfiguration(baseDelay: 1.5, maxDelay: 5.0, maxAttempts: 4, strategy: .exponential)
         )
         
         XCTAssertEqual(config.fileName, "test_file")
@@ -113,7 +113,7 @@ final class BookingServiceConfigurationTests: XCTestCase {
         XCTAssertFalse(config.enableCaching)
         XCTAssertEqual(config.cacheExpirationTime, 180.0)
         XCTAssertEqual(config.maxRetryAttempts, 4)
-        XCTAssertEqual(config.retryDelay, 1.5)
+        XCTAssertEqual(config.retryConfiguration.baseDelay, 1.5)
     }
     
     func testProductionBookingServiceConfiguration() throws {
@@ -126,7 +126,7 @@ final class BookingServiceConfigurationTests: XCTestCase {
         XCTAssertTrue(config.enableCaching)
         XCTAssertEqual(config.cacheExpirationTime, 600.0)
         XCTAssertEqual(config.maxRetryAttempts, 2)
-        XCTAssertEqual(config.retryDelay, 2.0)
+        XCTAssertEqual(config.retryConfiguration.baseDelay, 2.0)
     }
     
     func testTestBookingServiceConfiguration() throws {
@@ -139,7 +139,7 @@ final class BookingServiceConfigurationTests: XCTestCase {
         XCTAssertFalse(config.enableCaching)
         XCTAssertEqual(config.cacheExpirationTime, 60.0)
         XCTAssertEqual(config.maxRetryAttempts, 1)
-        XCTAssertEqual(config.retryDelay, 0.5)
+        XCTAssertEqual(config.retryConfiguration.baseDelay, 0.5)
     }
     
     func testTestBookingServiceConfigurationWithCustomFileName() throws {
@@ -185,7 +185,7 @@ final class BookingServiceConfigurationTests: XCTestCase {
             enableCaching: false,
             cacheExpirationTime: 0.1, // 最小缓存时间
             maxRetryAttempts: 1, // 最小重试次数
-            retryDelay: 0.1 // 最小重试延迟
+            retryConfiguration: RetryConfiguration(baseDelay: 0.1, maxDelay: 1.0, maxAttempts: 1, strategy: .exponential)
         )
         
         XCTAssertEqual(config.fileName, "a")
@@ -193,7 +193,7 @@ final class BookingServiceConfigurationTests: XCTestCase {
         XCTAssertEqual(config.requestTimeout, 0.1)
         XCTAssertEqual(config.cacheExpirationTime, 0.1)
         XCTAssertEqual(config.maxRetryAttempts, 1)
-        XCTAssertEqual(config.retryDelay, 0.1)
+        XCTAssertEqual(config.retryConfiguration.baseDelay, 0.1)
     }
     
     func testConfigurationLargeValues() throws {
@@ -205,7 +205,7 @@ final class BookingServiceConfigurationTests: XCTestCase {
             enableCaching: true,
             cacheExpirationTime: 86400.0, // 24小时
             maxRetryAttempts: 10,
-            retryDelay: 60.0 // 1分钟
+            retryConfiguration: RetryConfiguration(baseDelay: 60.0, maxDelay: 300.0, maxAttempts: 10, strategy: .exponential)
         )
         
         XCTAssertEqual(config.fileName, "very_long_file_name_for_testing_purposes")
@@ -213,6 +213,6 @@ final class BookingServiceConfigurationTests: XCTestCase {
         XCTAssertEqual(config.requestTimeout, 3600.0)
         XCTAssertEqual(config.cacheExpirationTime, 86400.0)
         XCTAssertEqual(config.maxRetryAttempts, 10)
-        XCTAssertEqual(config.retryDelay, 60.0)
+        XCTAssertEqual(config.retryConfiguration.baseDelay, 60.0)
     }
 }

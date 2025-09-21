@@ -87,7 +87,7 @@ enum DataStatus: Equatable {
 }
 
 // MARK: - 数据管理器错误类型
-enum BookingDataError: Error, LocalizedError {
+enum BookingDataError: Error, LocalizedError, Equatable {
     // MARK: - 文件系统错误
     case fileNotFound(String)                    // 文件不存在
     case fileAccessDenied(String)                // 文件访问权限不足

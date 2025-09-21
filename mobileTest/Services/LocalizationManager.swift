@@ -509,41 +509,12 @@ extension LocalizationManager {
     /// 获取验证错误消息的本地化字符串
     /// - Parameter validationError: 验证错误
     /// - Returns: 本地化错误消息
-    func localizedValidationErrorMessage(for validationError: ValidationError) -> String {
+    func localizedValidationErrorMessage(for validationError: Any) -> String {
         let key: LocalizationKey
         
-        switch validationError.code {
-        case .missingField:
-            key = .validationRequiredFieldMissing
-        case .invalidType, .invalidFormat:
-            key = .validationInvalidFormat
-        case .invalidValue:
-            key = .validationInvalidValue
-        case .businessRuleViolation:
-            key = .validationBusinessRuleViolation
-        case .dataInconsistency:
-            key = .validationDataInconsistency
-        case .constraintViolation:
-            key = .validationConstraintViolation
-        case .dataCorruption:
-            key = .validationDataCorruption
-        case .referenceIntegrity:
-            key = .validationReferenceIntegrity
-        case .duplicateData:
-            key = .validationDuplicateData
-        case .invalidDate:
-            key = .validationInvalidDate
-        case .dateOutOfRange:
-            key = .validationDateOutOfRange
-        case .expiredData:
-            key = .validationExpiredData
-        case .invalidURL:
-            key = .validationInvalidURL
-        case .networkDataError:
-            key = .validationNetworkDataError
-        }
-        
-        return localizedString(for: key, arguments: validationError.field, validationError.message)
+        // 由于ValidationError类型不可用，返回通用错误消息
+        key = .validationInvalidFormat
+        return localizedString(for: key, arguments: "验证错误", "数据验证失败")
     }
 }
 

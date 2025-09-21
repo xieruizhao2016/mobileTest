@@ -118,10 +118,12 @@ class AsyncFileReader: AsyncFileReaderProtocol {
     ///   - urlSession: 自定义URLSession
     ///   - enableVerboseLogging: 是否启用详细日志
     ///   - retryConfiguration: 重试配置
-    init(urlSession: URLSession, enableVerboseLogging: Bool = true, retryConfiguration: RetryConfiguration = .default) {
+    ///   - compressionManager: 压缩管理器
+    init(urlSession: URLSession, enableVerboseLogging: Bool = true, retryConfiguration: RetryConfiguration = .default, compressionManager: CompressionManagerProtocol? = nil) {
         self.urlSession = urlSession
         self.enableVerboseLogging = enableVerboseLogging
         self.retryManager = RetryManager(configuration: retryConfiguration, enableVerboseLogging: enableVerboseLogging)
+        self.compressionManager = compressionManager ?? CompressionManagerFactory.createDefault(enableVerboseLogging: enableVerboseLogging)
     }
     
     // MARK: - 公共方法

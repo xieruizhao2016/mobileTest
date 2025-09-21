@@ -172,9 +172,9 @@ final class BookingModelsTests: XCTestCase {
     // MARK: - BookingDataError 测试
     
     func testBookingDataErrorDescriptions() throws {
-        XCTAssertEqual(BookingDataError.fileNotFound.errorDescription, "找不到数据文件")
-        XCTAssertEqual(BookingDataError.invalidJSON.errorDescription, "JSON数据格式无效")
-        XCTAssertEqual(BookingDataError.dataExpired.errorDescription, "数据已过期")
+        XCTAssertEqual(BookingDataError.fileNotFound("测试文件").errorDescription, "找不到数据文件: 测试文件")
+        XCTAssertEqual(BookingDataError.invalidJSON("测试JSON").errorDescription, "JSON数据格式无效: 测试JSON")
+        XCTAssertEqual(BookingDataError.dataExpired("测试数据").errorDescription, "数据已过期: 测试数据")
         XCTAssertEqual(BookingDataError.networkError("网络问题").errorDescription, "网络错误: 网络问题")
         XCTAssertEqual(BookingDataError.cacheError("缓存问题").errorDescription, "缓存错误: 缓存问题")
     }

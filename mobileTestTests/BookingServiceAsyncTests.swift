@@ -51,7 +51,7 @@ class BookingServiceAsyncTests: XCTestCase {
     func testFetchBookingDataWithAsyncReaderError() async {
         // Given: 模拟文件读取器抛出错误
         mockFileReader.shouldThrowError = true
-        mockFileReader.mockError = BookingDataError.fileNotFound
+        mockFileReader.mockError = BookingDataError.fileNotFound("模拟错误")
         
         // When & Then: 应该抛出错误
         do {

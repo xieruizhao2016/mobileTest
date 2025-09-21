@@ -37,7 +37,7 @@ class PerformanceMonitorTests: XCTestCase {
         monitor.recordMetric(metric)
         
         // Then
-        let statistics = monitor.getStatistics(for: .executionTime)
+        let statistics = monitor.getStatistics(for: .executionTime, in: nil)
         XCTAssertNotNil(statistics)
         XCTAssertEqual(statistics?.count, 1)
         XCTAssertEqual(statistics?.average, 100.0)
@@ -57,7 +57,7 @@ class PerformanceMonitorTests: XCTestCase {
         }
         
         // Then
-        let statistics = monitor.getStatistics(for: .executionTime)
+        let statistics = monitor.getStatistics(for: .executionTime, in: nil)
         XCTAssertNotNil(statistics)
         XCTAssertEqual(statistics?.count, 3)
         XCTAssertEqual(statistics?.min, 100.0)
@@ -80,7 +80,7 @@ class PerformanceMonitorTests: XCTestCase {
         }
         
         // Then
-        let allStatistics = monitor.getAllStatistics()
+        let allStatistics = monitor.getAllStatistics(in: nil)
         XCTAssertEqual(allStatistics.count, 3)
         XCTAssertNotNil(allStatistics[.executionTime])
         XCTAssertNotNil(allStatistics[.memoryUsage])
@@ -98,10 +98,10 @@ class PerformanceMonitorTests: XCTestCase {
         monitor.recordMetric(metric)
         
         // When
-        monitor.clearData()
+        monitor.clearData(in: nil)
         
         // Then
-        let statistics = monitor.getStatistics(for: .executionTime)
+        let statistics = monitor.getStatistics(for: .executionTime, in: nil)
         XCTAssertNil(statistics)
     }
     
@@ -132,7 +132,7 @@ class PerformanceMonitorTests: XCTestCase {
         monitor.clearData(in: timeRange)
         
         // Then
-        let statistics = monitor.getStatistics(for: .executionTime)
+        let statistics = monitor.getStatistics(for: .executionTime, in: nil)
         XCTAssertNotNil(statistics)
         XCTAssertEqual(statistics?.count, 1)
         XCTAssertEqual(statistics?.average, 100.0)
@@ -153,7 +153,7 @@ class PerformanceMonitorTests: XCTestCase {
         }
         
         // Then
-        let statistics = monitor.getStatistics(for: .executionTime)
+        let statistics = monitor.getStatistics(for: .executionTime, in: nil)
         XCTAssertNotNil(statistics)
         XCTAssertEqual(statistics?.count, 10)
         XCTAssertEqual(statistics?.min, 10.0)
@@ -255,34 +255,34 @@ class PerformanceMonitorTests: XCTestCase {
         decorator.recordValidationTime(50.0, context: "test")
         
         // Then
-        let memoryStats = monitor.getStatistics(for: .memoryUsage)
+        let memoryStats = monitor.getStatistics(for: .memoryUsage, in: nil)
         XCTAssertNotNil(memoryStats)
         
-        let latencyStats = monitor.getStatistics(for: .networkLatency)
+        let latencyStats = monitor.getStatistics(for: .networkLatency, in: nil)
         XCTAssertNotNil(latencyStats)
         XCTAssertEqual(latencyStats?.average, 150.0)
         
-        let cacheStats = monitor.getStatistics(for: .cacheHitRate)
+        let cacheStats = monitor.getStatistics(for: .cacheHitRate, in: nil)
         XCTAssertNotNil(cacheStats)
         XCTAssertEqual(cacheStats?.average, 85.0)
         
-        let errorStats = monitor.getStatistics(for: .errorRate)
+        let errorStats = monitor.getStatistics(for: .errorRate, in: nil)
         XCTAssertNotNil(errorStats)
         XCTAssertEqual(errorStats?.average, 5.0)
         
-        let throughputStats = monitor.getStatistics(for: .throughput)
+        let throughputStats = monitor.getStatistics(for: .throughput, in: nil)
         XCTAssertNotNil(throughputStats)
         XCTAssertEqual(throughputStats?.average, 100.0)
         
-        let responseStats = monitor.getStatistics(for: .responseSize)
+        let responseStats = monitor.getStatistics(for: .responseSize, in: nil)
         XCTAssertNotNil(responseStats)
         XCTAssertEqual(responseStats?.average, 1024.0)
         
-        let retryStats = monitor.getStatistics(for: .retryCount)
+        let retryStats = monitor.getStatistics(for: .retryCount, in: nil)
         XCTAssertNotNil(retryStats)
         XCTAssertEqual(retryStats?.average, 2.0)
         
-        let validationStats = monitor.getStatistics(for: .validationTime)
+        let validationStats = monitor.getStatistics(for: .validationTime, in: nil)
         XCTAssertNotNil(validationStats)
         XCTAssertEqual(validationStats?.average, 50.0)
     }
@@ -301,7 +301,7 @@ class PerformanceMonitorTests: XCTestCase {
             // Then
             XCTAssertEqual(result, "success")
             
-            let stats = monitor.getStatistics(for: .executionTime)
+            let stats = monitor.getStatistics(for: .executionTime, in: nil)
             XCTAssertNotNil(stats)
             XCTAssertEqual(stats?.count, 1)
             XCTAssertGreaterThan(stats?.average ?? 0, 90.0) // 应该大于90ms
@@ -323,7 +323,7 @@ class PerformanceMonitorTests: XCTestCase {
             XCTFail("应该抛出错误")
         } catch {
             // Then
-            let stats = monitor.getStatistics(for: .executionTime)
+            let stats = monitor.getStatistics(for: .executionTime, in: nil)
             XCTAssertNotNil(stats)
             XCTAssertEqual(stats?.count, 1)
         }
@@ -359,8 +359,8 @@ class PerformanceMonitorTests: XCTestCase {
         
         // When
         emptyMonitor.recordMetric(metric)
-        let statistics = emptyMonitor.getStatistics(for: .executionTime)
-        let allStatistics = emptyMonitor.getAllStatistics()
+        let statistics = emptyMonitor.getStatistics(for: .executionTime, in: nil)
+        let allStatistics = emptyMonitor.getAllStatistics(in: nil)
         let exportData = emptyMonitor.exportData(format: .json)
         
         // Then
@@ -373,7 +373,7 @@ class PerformanceMonitorTests: XCTestCase {
     
     func testEmptyStatistics() {
         // When
-        let statistics = monitor.getStatistics(for: .executionTime)
+        let statistics = monitor.getStatistics(for: .executionTime, in: nil)
         
         // Then
         XCTAssertNil(statistics)
@@ -390,7 +390,7 @@ class PerformanceMonitorTests: XCTestCase {
         
         // When
         monitor.recordMetric(metric)
-        let statistics = monitor.getStatistics(for: .executionTime)
+        let statistics = monitor.getStatistics(for: .executionTime, in: nil)
         
         // Then
         XCTAssertNotNil(statistics)
@@ -420,7 +420,7 @@ class PerformanceMonitorTests: XCTestCase {
         }
         
         // Then
-        let statistics = monitor.getStatistics(for: .executionTime)
+        let statistics = monitor.getStatistics(for: .executionTime, in: nil)
         XCTAssertNotNil(statistics)
         XCTAssertEqual(statistics?.count, 1000)
         XCTAssertEqual(statistics?.min, 1.0)

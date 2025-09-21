@@ -12,7 +12,7 @@ import XCTest
 class MockAsyncFileReader: AsyncFileReaderProtocol {
     var shouldThrowError = false
     var mockData = Data("test data".utf8)
-    var mockError = BookingDataError.fileNotFound
+    var mockError: Error = BookingDataError.fileNotFound("模拟错误")
     var readLocalFileCallCount = 0
     var readRemoteFileCallCount = 0
     var readFileCallCount = 0
@@ -55,6 +55,35 @@ class MockAsyncFileReader: AsyncFileReaderProtocol {
         progressCallback(0.5)
         progressCallback(1.0)
         return mockData
+    }
+    
+    func readCompressedFile(
+        fileName: String,
+        fileExtension: String,
+        bundle: Bundle,
+        autoDecompress: Bool
+    ) async throws -> Data {
+        readFileCallCount += 1
+        if shouldThrowError {
+            throw mockError
+        }
+        return mockData
+    }
+    
+    func readRemoteCompressedFile(
+        url: URL,
+        timeout: TimeInterval,
+        autoDecompress: Bool
+    ) async throws -> Data {
+        readFileCallCount += 1
+        if shouldThrowError {
+            throw mockError
+        }
+        return mockData
+    }
+    
+    func detectCompressionFormat(from data: Data) -> CompressionInfo? {
+        return nil
     }
 }
 
@@ -259,7 +288,7 @@ class AsyncFileReaderTests: XCTestCase {
         let result = try await fileReader.readFileWithProgress(
             source: "progress_test",
             fileExtension: "json",
-            timeout: nil,
+            timeout: nil as TimeInterval?,
             progressCallback: progressCallback
         )
         
@@ -288,8 +317,8 @@ class AsyncFileReaderTests: XCTestCase {
         }
         
         let sources = [
-            (source: "multi_test1", fileExtension: "json", timeout: nil),
-            (source: "multi_test2", fileExtension: "json", timeout: nil)
+            (source: "multi_test1", fileExtension: "json", timeout: nil as TimeInterval?),
+            (source: "multi_test2", fileExtension: "json", timeout: nil as TimeInterval?)
         ]
         
         // When: 批量读取文件
@@ -329,7 +358,7 @@ class AsyncFileReaderTests: XCTestCase {
 }
 
 // MARK: - 模拟URLSession
-class MockURLSession: URLSession {
+class MockURLSession: URLSession, @unchecked Sendable {
     var mockData: Data?
     var mockResponse: URLResponse?
     var mockError: Error?

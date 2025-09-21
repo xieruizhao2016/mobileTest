@@ -60,9 +60,6 @@ protocol BookingServiceConfigurationProtocol {
     /// 最大重试次数
     var maxRetryAttempts: Int { get }
     
-    /// 重试延迟时间（秒）
-    var retryDelay: TimeInterval { get }
-    
     /// 重试配置
     var retryConfiguration: RetryConfiguration { get }
     
@@ -107,6 +104,15 @@ protocol BookingServiceConfigurationProtocol {
     
     /// 支持的最高版本
     var maximumSupportedVersion: VersionInfo { get }
+    
+    /// 缓存策略
+    var cacheStrategy: CacheStrategy { get }
+    
+    /// 是否启用请求去重
+    var enableRequestDeduplication: Bool { get }
+    
+    /// 是否启用后台刷新
+    var enableBackgroundRefresh: Bool { get }
 }
 
 // MARK: - 默认配置实现
@@ -118,7 +124,6 @@ struct DefaultBookingServiceConfiguration: BookingServiceConfigurationProtocol {
     let enableCaching: Bool
     let cacheExpirationTime: TimeInterval
     let maxRetryAttempts: Int
-    let retryDelay: TimeInterval
     let retryConfiguration: RetryConfiguration
     let enableDataValidation: Bool
     let validationStrictness: ValidationStrictness
@@ -134,6 +139,9 @@ struct DefaultBookingServiceConfiguration: BookingServiceConfigurationProtocol {
     let autoMigrateData: Bool
     let minimumSupportedVersion: VersionInfo
     let maximumSupportedVersion: VersionInfo
+    let cacheStrategy: CacheStrategy
+    let enableRequestDeduplication: Bool
+    let enableBackgroundRefresh: Bool
     
     /// 默认初始化器
     init(
@@ -144,7 +152,6 @@ struct DefaultBookingServiceConfiguration: BookingServiceConfigurationProtocol {
         enableCaching: Bool = true,
         cacheExpirationTime: TimeInterval = 300.0, // 5分钟
         maxRetryAttempts: Int = 3,
-        retryDelay: TimeInterval = 1.0,
         retryConfiguration: RetryConfiguration = .default,
         enableDataValidation: Bool = true,
         validationStrictness: ValidationStrictness = .normal,
@@ -168,7 +175,6 @@ struct DefaultBookingServiceConfiguration: BookingServiceConfigurationProtocol {
         self.enableCaching = enableCaching
         self.cacheExpirationTime = cacheExpirationTime
         self.maxRetryAttempts = maxRetryAttempts
-        self.retryDelay = retryDelay
         self.retryConfiguration = retryConfiguration
         self.enableDataValidation = enableDataValidation
         self.validationStrictness = validationStrictness
@@ -184,6 +190,23 @@ struct DefaultBookingServiceConfiguration: BookingServiceConfigurationProtocol {
         self.autoMigrateData = autoMigrateData
         self.minimumSupportedVersion = minimumSupportedVersion
         self.maximumSupportedVersion = maximumSupportedVersion
+        
+        // 计算缓存策略
+        if !enableCaching {
+            self.cacheStrategy = .disabled
+        } else if cacheExpirationTime <= 60 {
+            self.cacheStrategy = .memoryOnly
+        } else if cacheExpirationTime <= 300 {
+            self.cacheStrategy = .diskOnly
+        } else {
+            self.cacheStrategy = .smart
+        }
+        
+        // 计算请求去重设置
+        self.enableRequestDeduplication = enableCaching
+        
+        // 计算后台刷新设置
+        self.enableBackgroundRefresh = enableCaching && cacheExpirationTime > 300
     }
 }
 
@@ -196,7 +219,6 @@ struct ProductionBookingServiceConfiguration: BookingServiceConfigurationProtoco
     let enableCaching: Bool = true
     let cacheExpirationTime: TimeInterval = 600.0 // 10分钟
     let maxRetryAttempts: Int = 2
-    let retryDelay: TimeInterval = 2.0
     let retryConfiguration: RetryConfiguration = .conservative
     let enableDataValidation: Bool = true
     let validationStrictness: ValidationStrictness = .strict
@@ -212,6 +234,9 @@ struct ProductionBookingServiceConfiguration: BookingServiceConfigurationProtoco
     let autoMigrateData: Bool = true
     let minimumSupportedVersion: VersionInfo = VersionInfo(major: 1, minor: 0, patch: 0, build: nil, releaseDate: nil, description: "最低支持版本")
     let maximumSupportedVersion: VersionInfo = VersionInfo(major: 2, minor: 0, patch: 0, build: nil, releaseDate: nil, description: "最高支持版本")
+    let cacheStrategy: CacheStrategy = .smart
+    let enableRequestDeduplication: Bool = true
+    let enableBackgroundRefresh: Bool = true
 }
 
 // MARK: - 测试环境配置
@@ -223,7 +248,6 @@ struct TestBookingServiceConfiguration: BookingServiceConfigurationProtocol {
     let enableCaching: Bool = false
     let cacheExpirationTime: TimeInterval = 60.0
     let maxRetryAttempts: Int = 1
-    let retryDelay: TimeInterval = 0.5
     let retryConfiguration: RetryConfiguration = .fast
     let enableDataValidation: Bool = false
     let validationStrictness: ValidationStrictness = .disabled
@@ -239,6 +263,9 @@ struct TestBookingServiceConfiguration: BookingServiceConfigurationProtocol {
     let autoMigrateData: Bool = false
     let minimumSupportedVersion: VersionInfo = VersionInfo(major: 1, minor: 0, patch: 0, build: nil, releaseDate: nil, description: "测试版本")
     let maximumSupportedVersion: VersionInfo = VersionInfo(major: 1, minor: 0, patch: 0, build: nil, releaseDate: nil, description: "测试版本")
+    let cacheStrategy: CacheStrategy = .disabled
+    let enableRequestDeduplication: Bool = false
+    let enableBackgroundRefresh: Bool = false
     
     init(fileName: String = "booking") {
         self.fileName = fileName
@@ -271,7 +298,6 @@ enum BookingServiceConfigurationFactory {
         enableCaching: Bool = true,
         cacheExpirationTime: TimeInterval = 300.0,
         maxRetryAttempts: Int = 3,
-        retryDelay: TimeInterval = 1.0,
         retryConfiguration: RetryConfiguration = .default,
         enableDataValidation: Bool = true,
         validationStrictness: ValidationStrictness = .normal,
@@ -296,7 +322,6 @@ enum BookingServiceConfigurationFactory {
             enableCaching: enableCaching,
             cacheExpirationTime: cacheExpirationTime,
             maxRetryAttempts: maxRetryAttempts,
-            retryDelay: retryDelay,
             retryConfiguration: retryConfiguration,
             enableDataValidation: enableDataValidation,
             validationStrictness: validationStrictness,

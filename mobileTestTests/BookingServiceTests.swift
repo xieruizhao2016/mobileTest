@@ -230,7 +230,7 @@ final class BookingServiceTests: XCTestCase {
         let retryConfig = BookingServiceConfigurationFactory.createCustom(
             fileName: "booking",
             maxRetryAttempts: 2,
-            retryDelay: 0.1
+            retryConfiguration: RetryConfiguration(baseDelay: 0.1, maxDelay: 1.0, maxAttempts: 2, strategy: .exponential)
         )
         let retryService = BookingService(configuration: retryConfig)
         

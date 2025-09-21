@@ -185,7 +185,7 @@ final class BookingCacheAdvancedTests: XCTestCase {
         
         // 验证预热的数据可以立即获取
         for (key, expectedValue) in warmupItems {
-            let value = cacheManager.get(key: key)
+            let value: String? = cacheManager.get(key: key)
             XCTAssertEqual(value, expectedValue)
         }
         
@@ -206,11 +206,11 @@ final class BookingCacheAdvancedTests: XCTestCase {
         cacheManager.warmup(items: warmupItems)
         
         // 验证已存在的键没有被覆盖
-        let existingValue = cacheManager.get(key: "existing_key")
+        let existingValue: String? = cacheManager.get(key: "existing_key")
         XCTAssertEqual(existingValue, "existing_value")
         
         // 验证新键被添加
-        let newValue = cacheManager.get(key: "new_key")
+        let newValue: String? = cacheManager.get(key: "new_key")
         XCTAssertEqual(newValue, "new_value")
     }
     
@@ -230,7 +230,7 @@ final class BookingCacheAdvancedTests: XCTestCase {
         await withTaskGroup(of: Void.self) { group in
             for i in 0..<10 {
                 group.addTask {
-                    _ = self.cacheManager.get(key: "concurrent_key\(i)")
+                    _ = self.cacheManager.get(key: "concurrent_key\(i)") as String?
                 }
             }
         }
@@ -286,7 +286,7 @@ final class BookingCacheAdvancedTests: XCTestCase {
     func testEmptyKey() throws {
         // 测试空键
         cacheManager.set(key: "", value: "empty_key_value")
-        let value = cacheManager.get(key: "")
+        let value: String? = cacheManager.get(key: "")
         XCTAssertEqual(value, "empty_key_value")
     }
     
@@ -294,7 +294,7 @@ final class BookingCacheAdvancedTests: XCTestCase {
         // 测试很长的键
         let longKey = String(repeating: "a", count: 1000)
         cacheManager.set(key: longKey, value: "long_key_value")
-        let value = cacheManager.get(key: longKey)
+        let value: String? = cacheManager.get(key: longKey)
         XCTAssertEqual(value, "long_key_value")
     }
     
@@ -310,7 +310,7 @@ final class BookingCacheAdvancedTests: XCTestCase {
         let zeroExpCache = BookingCache(configuration: zeroExpConfig)
         
         zeroExpCache.set(key: "zero_exp_key", value: "zero_exp_value")
-        let value = zeroExpCache.get(key: "zero_exp_key")
+        let value: String? = zeroExpCache.get(key: "zero_exp_key")
         XCTAssertNil(value) // 应该立即过期
     }
 }
