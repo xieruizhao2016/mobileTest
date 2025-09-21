@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showingError = false
+    @State private var showingTestDataView = false
     
     // MARK: - 视图主体
     var body: some View {
@@ -37,11 +38,14 @@ struct ContentView: View {
             }
             .navigationTitle("预订数据")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    refreshButton
-                }
-            }
+                   .toolbar {
+                       ToolbarItem(placement: .navigationBarLeading) {
+                           HStack(spacing: 8) {
+                               testDataButton
+                               refreshButton
+                           }
+                       }
+                   }
             .onAppear {
                 loadData()
             }
@@ -50,6 +54,9 @@ struct ContentView: View {
             } message: {
                 Text(errorMessage ?? "未知错误")
             }
+            .sheet(isPresented: $showingTestDataView) {
+                TestDataView(bookingDataManager: dataManager)
+            }
         }
     }
     
@@ -57,14 +64,14 @@ struct ContentView: View {
     
     /// 头部信息视图
     private var headerView: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             HStack {
                 Image(systemName: "ship.fill")
                     .foregroundColor(.blue)
-                    .font(.title2)
+                    .font(.title3)
                 
                 Text("船舶预订系统")
-                    .font(.headline)
+                    .font(.subheadline)
                     .fontWeight(.semibold)
                 
                 Spacer()
@@ -73,32 +80,32 @@ struct ContentView: View {
             
             if let data = bookingData {
                 HStack {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 2) {
                         Text("参考号: \(data.shipReference)")
-                            .font(.caption)
+                            .font(.caption2)
                             .foregroundColor(.secondary)
                         
                         Text("状态: \(data.isExpired ? "已过期" : "有效")")
-                            .font(.caption)
+                            .font(.caption2)
                             .foregroundColor(data.isExpired ? .red : .green)
                     }
                     
                     Spacer()
                     
-                    VStack(alignment: .trailing, spacing: 4) {
+                    VStack(alignment: .trailing, spacing: 2) {
                         Text("持续时间: \(data.formattedDuration)")
-                            .font(.caption)
+                            .font(.caption2)
                             .foregroundColor(.secondary)
                         
                         Text("航段: \(data.segments.count)个")
-                            .font(.caption)
+                            .font(.caption2)
                             .foregroundColor(.secondary)
                     }
                 }
                 .padding(.horizontal)
             }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
         .background(Color(.systemGray6))
     }
     
@@ -126,6 +133,7 @@ struct ContentView: View {
                 InfoRow(title: "过期时间", value: data.formattedExpiryTime)
                 InfoRow(title: "持续时间", value: data.formattedDuration)
             }
+            .headerProminence(.increased)
             
             // 航段信息部分
             Section("航段信息 (\(data.segments.count)个)") {
@@ -133,8 +141,10 @@ struct ContentView: View {
                     SegmentRow(segment: segment)
                 }
             }
+            .headerProminence(.increased)
         }
         .listStyle(InsetGroupedListStyle())
+        .environment(\.defaultMinListRowHeight, 60)
     }
     
     /// 错误视图
@@ -180,13 +190,23 @@ struct ContentView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
+    /// 测试数据按钮
+    private var testDataButton: some View {
+        Button(action: {
+            showingTestDataView = true
+        }) {
+            Image(systemName: "testtube.2")
+                .font(.caption)
+        }
+    }
+    
     /// 刷新按钮
     private var refreshButton: some View {
         Button(action: {
             loadData(forceRefresh: true)
         }) {
             Image(systemName: "arrow.clockwise")
-                .font(.title3)
+                .font(.caption)
         }
         .disabled(isLoading)
     }
@@ -265,15 +285,17 @@ struct InfoRow: View {
     var body: some View {
         HStack {
             Text(title)
-                .font(.subheadline)
+                .font(.body)
                 .foregroundColor(.secondary)
             
             Spacer()
             
             Text(value)
-                .font(.subheadline)
+                .font(.body)
                 .fontWeight(.medium)
+                .multilineTextAlignment(.trailing)
         }
+        .padding(.vertical, 8)
     }
 }
 
@@ -282,30 +304,31 @@ struct SegmentRow: View {
     let segment: Segment
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("航段 \(segment.id)")
-                    .font(.headline)
+                    .font(.title3)
                     .fontWeight(.semibold)
                 
                 Spacer()
                 
                 Image(systemName: "airplane")
                     .foregroundColor(.blue)
+                    .font(.title3)
             }
             
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text("起点")
-                        .font(.caption)
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
                     
                     Text(segment.originAndDestinationPair.origin.displayName)
-                        .font(.subheadline)
+                        .font(.body)
                         .fontWeight(.medium)
                     
                     Text("(\(segment.originAndDestinationPair.origin.code))")
-                        .font(.caption)
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
                 
@@ -313,25 +336,26 @@ struct SegmentRow: View {
                 
                 Image(systemName: "arrow.right")
                     .foregroundColor(.blue)
+                    .font(.title3)
                 
                 Spacer()
                 
-                VStack(alignment: .trailing, spacing: 4) {
+                VStack(alignment: .trailing, spacing: 6) {
                     Text("终点")
-                        .font(.caption)
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
                     
                     Text(segment.originAndDestinationPair.destination.displayName)
-                        .font(.subheadline)
+                        .font(.body)
                         .fontWeight(.medium)
                     
                     Text("(\(segment.originAndDestinationPair.destination.code))")
-                        .font(.caption)
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 12)
     }
 }
 
