@@ -11,10 +11,12 @@ struct ContentView: View {
     // MARK: - 属性
     @StateObject private var dataManager = BookingDataManager()
     @State private var bookingData: BookingData?
+    @StateObject private var testDataManagerRef = TestDataManager(bookingDataManager: BookingDataManager())
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showingError = false
     @State private var showingTestDataView = false
+    @State private var didSeedTestData = false
     
     // MARK: - 视图主体
     var body: some View {
@@ -23,16 +25,8 @@ struct ContentView: View {
                 // 头部信息
                 headerView
                 
-                // 主要内容区域
-                if isLoading {
-                    loadingView
-                } else if let data = bookingData {
-                    dataListView(data: data)
-                } else if let error = errorMessage {
-                    errorView(error: error)
-                } else {
-                    emptyView
-                }
+                // 主要内容区域（改为展示未过期测试数据列表）
+                testDataListView
                 
                 Spacer()
             }
@@ -42,12 +36,23 @@ struct ContentView: View {
                        ToolbarItem(placement: .navigationBarLeading) {
                            HStack(spacing: 8) {
                                testDataButton
-                               refreshButton
                            }
                        }
                    }
             .onAppear {
-                loadData()
+//                loadData()
+                
+                // 首次进入若无测试数据则自动生成一批用于展示
+                if !didSeedTestData && testDataManagerRef.testData.isEmpty {
+                    didSeedTestData = true
+                    Task {
+                        await testDataManagerRef.generateAndLoadTestData(scenario: .normal)
+                    }
+                }
+            }
+            // 订阅数据管理器的当前数据，联动 TestDataView 的设置/清空操作
+            .onReceive(dataManager.$currentData) { data in
+                self.bookingData = data
             }
             .alert("错误", isPresented: $showingError) {
                 Button("确定") { }
@@ -55,12 +60,33 @@ struct ContentView: View {
                 Text(errorMessage ?? "未知错误")
             }
             .sheet(isPresented: $showingTestDataView) {
-                TestDataView(bookingDataManager: dataManager)
+                TestDataView(existingManager: testDataManagerRef)
             }
         }
     }
     
     // MARK: - 子视图
+    /// 未过期测试数据列表
+    private var testDataListView: some View {
+        let items = testDataManagerRef.validData
+        return Group {
+            if items.isEmpty {
+                emptyView
+            } else {
+                List {
+                    Section("未过期测试数据 (\(items.count)个)") {
+                        ForEach(items.indices, id: \.self) { index in
+                            let booking = items[index]
+                            BookingDataRow(booking: booking, index: index)
+                        }
+                    }
+                    .headerProminence(.increased)
+                }
+                .listStyle(InsetGroupedListStyle())
+                .environment(\.defaultMinListRowHeight, 60)
+            }
+        }
+    }
     
     /// 头部信息视图
     private var headerView: some View {
@@ -200,16 +226,7 @@ struct ContentView: View {
         }
     }
     
-    /// 刷新按钮
-    private var refreshButton: some View {
-        Button(action: {
-            loadData(forceRefresh: true)
-        }) {
-            Image(systemName: "arrow.clockwise")
-                .font(.caption)
-        }
-        .disabled(isLoading)
-    }
+    
     
     // MARK: - 方法
     

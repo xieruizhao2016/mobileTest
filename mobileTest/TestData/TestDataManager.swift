@@ -37,6 +37,12 @@ class TestDataManager: ObservableObject {
             // 更新本地数据
             testData = generatedData
             lastUpdateTime = Date()
+
+            // 将测试数据注入到主数据管理器以联动 ContentView
+            // 优先选择未过期数据，其次选择第一条
+            if let selected = generatedData.first(where: { !$0.isExpired }) ?? generatedData.first {
+                bookingDataManager.setTestData(selected)
+            }
             
             // 打印统计信息
             TestDataGenerator.printTestDataStatistics(generatedData)
@@ -74,6 +80,8 @@ class TestDataManager: ObservableObject {
     func clearTestData() {
         testData.removeAll()
         lastUpdateTime = nil
+        // 同步清空主数据管理器以联动 ContentView
+        bookingDataManager.resetToInitialState()
         print("🗑️ 测试数据已清空")
     }
     

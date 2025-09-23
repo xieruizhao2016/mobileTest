@@ -15,6 +15,11 @@ struct TestDataView: View {
     init(bookingDataManager: BookingDataManager) {
         self._testDataManager = StateObject(wrappedValue: TestDataManager(bookingDataManager: bookingDataManager))
     }
+
+    /// 允许外部传入已存在的 TestDataManager 以实现 ContentView 共享
+    init(existingManager: TestDataManager) {
+        self._testDataManager = StateObject(wrappedValue: existingManager)
+    }
     
     var body: some View {
         NavigationView {
